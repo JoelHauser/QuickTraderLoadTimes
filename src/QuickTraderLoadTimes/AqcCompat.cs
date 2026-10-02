@@ -25,7 +25,8 @@ namespace QuickTraderLoadTimes
     ///   - any ItemController raises an add, remove or refresh item event (InventoryEvents),
     ///   - more than 2 frames pass without a request (the cells being built have stopped), or
     ///   - it is more than 1 second old (a backstop in case a change raises no event).
-    /// In raid, the mod's own method runs unchanged. The first 20 answers are also computed the
+    /// Only on the trader deal screen and the flea market, out of raid (Scope); everywhere else,
+    /// including every raid, the mod's own method runs unchanged. The first 20 answers are also computed the
     /// mod's way and compared; the result is logged.
     /// </summary>
     internal static class AqcCompat
@@ -71,7 +72,7 @@ namespace QuickTraderLoadTimes
         private static bool Prefix(MongoID itemId, ref object __result)
         {
             if (!QuickTraderLoadTimesPlugin.AqcStashCountCache.Value) return true;
-            if (Singleton<AbstractGame>.Instance?.InRaid ?? false) return true;
+            if (!Scope.Active) return true;
 
             Inventory inventory = ClientAppUtils.GetClientApp()?.GetClientBackEndSession()?.Profile?.Inventory;
             if (inventory == null) return true;

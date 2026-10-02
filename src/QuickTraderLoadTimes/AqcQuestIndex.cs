@@ -23,7 +23,8 @@ namespace QuickTraderLoadTimes
     /// wins per quest; within a group the last matching condition wins unless a handover condition
     /// matched first), then answers the method from the index and finishes exactly as the method
     /// does (quest item, found-in-raid, only-found-in-raid flag). Weapons always go to the mod's own
-    /// method, since their answer also checks the weapon's build, and so does everything in raid. The index is rebuilt on the same
+    /// method, since their answer also checks the weapon's build, and so does everything outside the
+    /// trader and flea market screens (Scope), every raid included. The index is rebuilt on the same
     /// rules as AqcCompat's stash count (any inventory event, 2 idle frames, 1 s). The first 50
     /// answers also run the mod's own method and compare.
     /// </summary>
@@ -83,9 +84,9 @@ namespace QuickTraderLoadTimes
             ref Dictionary<MongoID, TQuest> fulfilled, ref bool __result)
         {
             if (_inVerify || !QuickTraderLoadTimesPlugin.AqcQuestIndex.Value) return true;
-            // In raid (solo or a Fika co-op raid) quest progress can change as items are picked up,
-            // and few cells are built there anyway: the mod's own lookup runs, like AqcCompat's.
-            if (Comfort.Common.Singleton<AbstractGame>.Instance?.InRaid ?? false) return true;
+            // Only on the trader deal screen and the flea market, out of raid (solo or a Fika co-op
+            // raid, where quest progress changes as items are picked up): elsewhere the mod's own runs.
+            if (!Scope.Active) return true;
             try
             {
                 if (profile == null || item == null || item is Weapon) return true;

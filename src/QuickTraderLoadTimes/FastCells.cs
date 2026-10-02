@@ -50,9 +50,6 @@ namespace QuickTraderLoadTimes
         private static readonly AccessTools.FieldRef<GridView, Dictionary<string, ItemView>> Views =
             AccessTools.FieldRefAccess<GridView, Dictionary<string, ItemView>>("ItemViews");
 
-        /// <summary>The deal screen last shown, set by the TraderDealScreen.Show probe.</summary>
-        public static TraderDealScreen DealScreen;
-
         private static int _frame = -1;
         private static readonly Dictionary<GridView, double> SpentThisFrame = new Dictionary<GridView, double>();
         private static readonly Dictionary<GridView, bool> Filling = new Dictionary<GridView, bool>();
@@ -63,6 +60,7 @@ namespace QuickTraderLoadTimes
         public static bool Prefix(GridView __instance, Rect rect, bool force, ref Task __result)
         {
             if (!QuickTraderLoadTimesPlugin.FastTraderCells.Value && !QuickTraderLoadTimesPlugin.SpreadStashCells.Value) return true;
+            if (Scope.InRaid) return true;
             if (!__instance.IsMagnified || __instance.Grid == null) return true;
 
             if (Filling.TryGetValue(__instance, out bool fillingStash))
@@ -82,14 +80,14 @@ namespace QuickTraderLoadTimes
 
         private static bool IsDealScreenTrader(GridView grid)
         {
-            TraderDealScreen screen = DealScreen;
-            return screen != null && screen.gameObject.activeInHierarchy && ReferenceEquals(grid, screen._traderGridView);
+            TraderDealScreen screen = Scope.DealScreen;
+            return Scope.TraderScreenOpen && ReferenceEquals(grid, screen._traderGridView);
         }
 
         private static bool IsDealScreenStash(GridView grid)
         {
-            TraderDealScreen screen = DealScreen;
-            return screen != null && screen.gameObject.activeInHierarchy && ReferenceEquals(grid, screen._stashGridView);
+            TraderDealScreen screen = Scope.DealScreen;
+            return Scope.TraderScreenOpen && ReferenceEquals(grid, screen._stashGridView);
         }
 
         /// <summary>GridView.MagnifyIfPossible(Rect, bool) with budgeted waits; see the class summary.</summary>

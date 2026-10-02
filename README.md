@@ -4,7 +4,7 @@ Faster trader screens for SPT 4.1.x. Opening a trader used to leave spinners acr
 trader's items while they appeared a few at a time, and froze for about half a second on every
 trader switch.
 
-**Status: 0.7.0, release candidate, not yet released.** Fixes on by default; the measurement harness
+**Status: 0.8.0, release candidate, not yet released.** Fixes on by default; the measurement harness
 is off by default. Measured on one heavily modded SPT 4.1.6 install (2026-10-01) with every fix
 on and `CellBudgetMs = 16`: the first items appear about 0.2 s after opening a trader, and
 everything in view (trader and stash) is there in about 0.5 s on most traders, down from
@@ -12,16 +12,25 @@ everything in view (trader and stash) is there in about 0.5 s on most traders, d
 problem: the trader grid built one cell per frame, each cell was slowed mostly by
 AllQuestsCheckmarks, and the stash rebuilt in a single frame on every trader switch.
 
+## Where it acts
+
+Only on the **trader deal screen** and the **flea market** (including its Add Offer window), and
+**never in a raid** (the BTR driver's trader in raid included). Everywhere else, the stash and
+character screens, the hideout, inspect windows, and every raid, the game's and other mods' own
+code runs untouched. The grid-building fixes act only on the trader screen's two grids; the
+per-cell fixes act on cells built while a trader or the flea market is open. The flea market is
+covered but has not been measured yet.
+
 ## Compatibility
 
 - **AllQuestsCheckmarks:** two of the fixes stand in for parts of AllQuestsCheckmarks 1.4.0 with
   the same logic, and check their first answers against the mod's own. With any other version of
   AllQuestsCheckmarks they stay off and the log says so; without it they never install.
-- **Fika:** Fika 2.4.3's client patches none of the methods this touches. On a Fika headless client
-  (no graphics) the plugin installs nothing. The AllQuestsCheckmarks fixes step aside in raid,
-  solo or co-op, so the mod's squad-quest marks are unaffected. Not yet run with Fika installed.
-- Only the trader screen's two grids are rebuilt differently; every other screen uses the game's
-  own grid code.
+- **Fika:** Fika 2.4.3's client patches none of the methods this touches. Fika makes
+  `AbstractGame.InRaid` true for its raids (solo and co-op), which is the check used for "never
+  in a raid", so nothing acts in Fika raids, and AllQuestsCheckmarks' squad-quest marks are its
+  own code. On a Fika headless client (no graphics) the plugin installs nothing. Checked from
+  Fika's code; not yet run with Fika installed.
 
 ## What it measures
 

@@ -24,7 +24,7 @@ namespace QuickTraderLoadTimes
     {
         public const string PluginGuid = "com.mybutthasarash.quicktraderloadtimes";
         public const string PluginName = "Quick Trader Load Times";
-        public const string PluginVersion = "0.7.0";
+        public const string PluginVersion = "0.8.0";
         public const string FikaGuid = "com.fika.core";
 
         internal static ManualLogSource Log;

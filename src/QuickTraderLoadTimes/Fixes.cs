@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using EFT;
 using EFT.InventoryLogic;
@@ -7,6 +8,7 @@ using EFT.Quests;
 using EFT.Trading;
 using EFT.UI;
 using EFT.UI.DragAndDrop;
+using EFT.UI.Ragfair;
 using HarmonyLib;
 using UnityEngine;
 
@@ -27,6 +29,11 @@ namespace QuickTraderLoadTimes
                 harmony.Patch(AccessTools.Method(typeof(TraderDealScreen), nameof(TraderDealScreen.Show),
                         new[] { typeof(Trader), typeof(Profile), typeof(InventoryController), typeof(ETradeMode), typeof(ItemUiContext), typeof(QuestController), typeof(IEnumerable<Trader>) }),
                     prefix: new HarmonyMethod(typeof(Fixes), nameof(DealShowPrefix)) { priority = Priority.First }));
+
+            Try("RagfairScreen.Show (flea market open)", () =>
+                harmony.Patch(typeof(RagfairScreen).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                        .Single(m => m.Name == nameof(RagfairScreen.Show) && m.DeclaringType == typeof(RagfairScreen) && m.GetParameters().Length == 6),
+                    prefix: new HarmonyMethod(typeof(Fixes), nameof(FleaShowPrefix)) { priority = Priority.First }));
 
             Try("inventory change events", () => InventoryEvents.Apply(harmony));
 
@@ -68,6 +75,8 @@ namespace QuickTraderLoadTimes
             }
         }
 
-        private static void DealShowPrefix(TraderDealScreen __instance) => FastCells.DealScreen = __instance;
+        private static void DealShowPrefix(TraderDealScreen __instance) => Scope.DealScreen = __instance;
+
+        private static void FleaShowPrefix(RagfairScreen __instance) => Scope.FleaScreen = __instance;
     }
 }

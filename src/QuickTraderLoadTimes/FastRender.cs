@@ -32,7 +32,7 @@ namespace QuickTraderLoadTimes
         /// <summary>Prefix on IconCreatorBase&lt;Item, ItemIcon&gt;.CG_MoveNext.method_0.</summary>
         public static bool Prefix(IconCreatorBase<Item, ItemIcon>.CG_MoveNext __instance, GameObject model, PreviewPivot pivot, ref Task<Sprite> __result)
         {
-            if (!QuickTraderLoadTimesPlugin.FastIconRender.Value) return true;
+            if (!QuickTraderLoadTimesPlugin.FastIconRender.Value || !Scope.Active) return true;
             if (!(__instance.IconCreatorBase is ItemIconCreator creator)) return true;
             __result = Capture(creator, model, __instance.size, pivot);
             return false;

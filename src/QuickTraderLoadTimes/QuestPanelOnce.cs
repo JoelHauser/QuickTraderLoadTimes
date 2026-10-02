@@ -12,6 +12,8 @@ namespace QuickTraderLoadTimes
     /// calls it, and so does GridItemView.UpdateInfo, which runs twice while a cell is set up. In vanilla
     /// that's cheap; with AllQuestsCheckmarks every call rebuilds the full quest tooltip (~0.5 ms).
     ///
+    /// Only on the trader deal screen and the flea market, out of raid (Scope).
+    ///
     /// The repeat is skipped when it is the same cell, showing the same item, in the same frame, with
     /// no inventory add/remove/refresh event since the first call: nothing the panel reads can have
     /// changed in between. Any later frame or inventory change runs it again as normal.
@@ -31,7 +33,7 @@ namespace QuickTraderLoadTimes
 
         public static bool Prefix(ItemView __instance)
         {
-            if (!QuickTraderLoadTimesPlugin.QuestPanelOncePerFrame.Value) return true;
+            if (!QuickTraderLoadTimesPlugin.QuestPanelOncePerFrame.Value || !Scope.Active) return true;
 
             int frame = Time.frameCount;
             if (frame != _frame)
