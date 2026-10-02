@@ -18,8 +18,9 @@ using UnityEngine;
 namespace Hurryitup
 {
     /// <summary>
-    /// Measurement-only Harmony patches. None of them changes what the game does, with one
-    /// opt-in exception (ColdIconCache, which points the item icon cache at a throwaway folder).
+    /// Measurement-only Harmony patches, installed only when Measurement is on. None of them changes
+    /// what the game does, with one opt-in exception (ColdIconCache, which points the item icon cache
+    /// at a throwaway folder). The fixes' own patches are in Fixes.
     /// Timing prefixes run first and timing postfixes run last, so other mods' patches on the
     /// same method count inside the measured time.
     /// </summary>
@@ -144,66 +145,7 @@ namespace Hurryitup
                 () => AccessTools.Method(typeof(ItemView), nameof(ItemView.IconChangedHandler)),
                 prefix: nameof(StartPrefix), postfix: nameof(IconChangedPostfix), watch: true);
 
-            // Fix candidate 2, inert unless FastTraderCells or SpreadStashCells is on.
-            try
-            {
-                MethodBase magnify = AccessTools.Method(typeof(GridView), nameof(GridView.MagnifyIfPossible), new[] { typeof(Rect), typeof(bool) });
-                harmony.Patch(magnify, prefix: new HarmonyMethod(typeof(FastCells), nameof(FastCells.Prefix)));
-                Applied.Add("FastCells (GridView.MagnifyIfPossible)");
-                Watched.Add(magnify);
-            }
-            catch (Exception e)
-            {
-                Failed.Add("FastCells: " + e.Message);
-            }
-
-            // Fix candidate 5, inert unless AqcQuestIndex is on.
-            try
-            {
-                AqcQuestIndex.Apply(harmony);
-                Applied.Add("AqcQuestIndex (" + AqcQuestIndex.Status + ")");
-            }
-            catch (Exception e)
-            {
-                Failed.Add("AqcQuestIndex: " + e.Message);
-            }
-
-            // Fix candidate 4, inert unless QuestPanelOncePerFrame is on.
-            try
-            {
-                harmony.Patch(AccessTools.Method(typeof(ItemView), nameof(ItemView.SetQuestItemViewPanel)),
-                    prefix: new HarmonyMethod(typeof(QuestPanelOnce), nameof(QuestPanelOnce.Prefix)) { priority = Priority.First - 1 });
-                Applied.Add("QuestPanelOnce (ItemView.SetQuestItemViewPanel)");
-            }
-            catch (Exception e)
-            {
-                Failed.Add("QuestPanelOnce: " + e.Message);
-            }
-
-            // Fix candidate 3, inert unless AqcStashCountCache is on.
-            try
-            {
-                AqcCompat.Apply(harmony);
-                Applied.Add("AqcCompat (" + AqcCompat.Status + ")");
-            }
-            catch (Exception e)
-            {
-                Failed.Add("AqcCompat: " + e.Message);
-            }
-
-            // Fix candidate 1, inert unless FastIconRender is on (checked on every call).
-            try
-            {
-                MethodBase lambda = AccessTools.Method(typeof(IconCreatorBase<Item, ItemIcon>.CG_MoveNext), "method_0");
-                harmony.Patch(lambda, prefix: new HarmonyMethod(typeof(FastRender), nameof(FastRender.Prefix)));
-                Applied.Add("FastRender (IconCreatorBase.CG_MoveNext.method_0)");
-            }
-            catch (Exception e)
-            {
-                Failed.Add("FastRender: " + e.Message);
-            }
-
-            HurryitupPlugin.Log.LogInfo($"probes applied: {Applied.Count}; failed: {Failed.Count}" +
+            HurryitupPlugin.Log.LogInfo($"measurement probes applied: {Applied.Count}; failed: {Failed.Count}" +
                 (Failed.Count > 0 ? " -> " + string.Join("; ", Failed) : ""));
         }
 
@@ -281,7 +223,6 @@ namespace Hurryitup
 
         private static void DealShowPrefix(TraderDealScreen __instance, Trader trader, out long __state)
         {
-            FastCells.DealScreen = __instance;
             Recorder.Begin(__instance, trader);
             __state = Stopwatch.GetTimestamp();
         }

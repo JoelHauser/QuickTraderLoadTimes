@@ -23,7 +23,7 @@ namespace Hurryitup
     /// wins per quest; within a group the last matching condition wins unless a handover condition
     /// matched first), then answers the method from the index and finishes exactly as the method
     /// does (quest item, found-in-raid, only-found-in-raid flag). Weapons always go to the mod's own
-    /// method, since their answer also checks the weapon's build. The index is rebuilt on the same
+    /// method, since their answer also checks the weapon's build, and so does everything in raid. The index is rebuilt on the same
     /// rules as AqcCompat's stash count (any inventory event, 2 idle frames, 1 s). The first 50
     /// answers also run the mod's own method and compare.
     /// </summary>
@@ -83,6 +83,9 @@ namespace Hurryitup
             ref Dictionary<MongoID, TQuest> fulfilled, ref bool __result)
         {
             if (_inVerify || !HurryitupPlugin.AqcQuestIndex.Value) return true;
+            // In raid (solo or a Fika co-op raid) quest progress can change as items are picked up,
+            // and few cells are built there anyway: the mod's own lookup runs, like AqcCompat's.
+            if (Comfort.Common.Singleton<AbstractGame>.Instance?.InRaid ?? false) return true;
             try
             {
                 if (profile == null || item == null || item is Weapon) return true;
@@ -137,7 +140,7 @@ namespace Hurryitup
             float now = Time.realtimeSinceStartup;
             bool valid = _index != null
                 && ReferenceEquals(_indexedFor, profile.QuestsData)
-                && _builtVersion == AqcCompat.InventoryVersion
+                && _builtVersion == InventoryEvents.Version
                 && frame - _lastFrame <= 2
                 && now - _builtAt < 1f;
             _lastFrame = frame;
@@ -154,7 +157,7 @@ namespace Hurryitup
                 return null;
             }
             _indexedFor = profile.QuestsData;
-            _builtVersion = AqcCompat.InventoryVersion;
+            _builtVersion = InventoryEvents.Version;
             _builtAt = now;
             Builds++;
             return _index;

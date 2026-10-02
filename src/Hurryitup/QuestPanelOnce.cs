@@ -41,7 +41,7 @@ namespace Hurryitup
             }
 
             Item item = __instance.Item;
-            int version = AqcCompat.InventoryVersion;
+            int version = InventoryEvents.Version;
             if (SeenThisFrame.TryGetValue(__instance, out Seen seen)
                 && ReferenceEquals(seen.Item, item)
                 && seen.InventoryVersion == version)

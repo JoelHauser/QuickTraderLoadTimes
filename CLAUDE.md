@@ -123,6 +123,23 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
   notice it. Several rows include scrolling and tab switching (many disk loads, 128 new renders on
   Peacekeeper), so their all_visible/cells_complete aren't open-to-done times.
 
+## 0.7.0, release prep (2026-10-01, not yet run in game)
+
+- Measurement off by default ([Measurement] Enabled, restart required); when off, no probes are
+  installed. The fixes' patches live in Fixes.cs and are always installed; each fix checks its own
+  setting per call.
+- Defaults: all fixes on except FastIconRender; CellBudgetMs 12 (Joel's cfg keeps 16).
+- FastTraderCells only touches TraderDealScreen._traderGridView (it used to touch any grid that
+  builds gradually).
+- AllQuestsCheckmarks fixes install only for 1.4.0 exactly (AqcSupport; soft BepInDependency so
+  the version is known). InventoryEvents (the change counter) is always installed, so
+  QuestPanelOnce no longer depends on AQC being present. AqcQuestIndex now also steps aside in raid.
+- Fika: Fika 2.4.3 (Fika.Core.dll, EFT 0.16.9.40743) was decompiled into a scratchpad; none of its
+  patches touch our targets (TraderDealScreen, grids, item views, quest panel, icon creator,
+  ItemController events). AQC's Fika code (SquadQuests, FikaBridge) is outside what we replace.
+  The plugin does nothing when Application.isBatchMode or there is no graphics device (headless).
+  Fika is not installed on Joel's machine, so this is static analysis only.
+
 ## How the game loads icons (from the 4.1.x client, decompiled 2026-10-01)
 
 - Each cell calls `ItemView.RefreshIcon` -> `ItemViewFactory.LoadItemIcon` ->

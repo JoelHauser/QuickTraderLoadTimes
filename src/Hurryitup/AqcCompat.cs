@@ -22,7 +22,7 @@ namespace Hurryitup
     /// This answers GetItemsInStash out of raid from one shared count of every template, built by
     /// the same walk the mod does (GetPlayerItems(), StackObjectsCount, split by
     /// MarkedAsSpawnedInSession). The shared count is thrown away and rebuilt when:
-    ///   - any ItemController raises an add, remove or refresh item event (an inventory change),
+    ///   - any ItemController raises an add, remove or refresh item event (InventoryEvents),
     ///   - more than 2 frames pass without a request (the cells being built have stopped), or
     ///   - it is more than 1 second old (a backstop in case a change raises no event).
     /// In raid, the mod's own method runs unchanged. The first 20 answers are also computed the
@@ -37,7 +37,6 @@ namespace Hurryitup
         private static FieldInfo _nonFir;
 
         private static Dictionary<MongoID, int[]> _counts;
-        private static int _version;
         private static int _builtVersion = -1;
         private static int _lastFrame = -100;
         private static float _builtAt;
@@ -65,18 +64,9 @@ namespace Hurryitup
                 throw new MissingMemberException("AllQuestsCheckmarks StashHelper.GetItemsInStash / ItemsCount has changed");
             }
             harmony.Patch(target, prefix: new HarmonyMethod(typeof(AqcCompat), nameof(Prefix)));
-
-            HarmonyMethod bump = new HarmonyMethod(typeof(AqcCompat), nameof(Bump));
-            harmony.Patch(AccessTools.Method(typeof(ItemController), nameof(ItemController.SafeAddItemEventInvoke)), postfix: bump);
-            harmony.Patch(AccessTools.Method(typeof(ItemController), nameof(ItemController.SafeRemoveItemEvent)), postfix: bump);
-            harmony.Patch(AccessTools.Method(typeof(ItemController), nameof(ItemController.SafeRefreshItemEvent)), postfix: bump);
             Status = "patched";
         }
 
-        private static void Bump() => _version++;
-
-        /// <summary>Bumped on every inventory add/remove/refresh event (also used by QuestPanelOnce).</summary>
-        public static int InventoryVersion => _version;
 
         private static bool Prefix(MongoID itemId, ref object __result)
         {
@@ -105,7 +95,7 @@ namespace Hurryitup
             int frame = Time.frameCount;
             float now = Time.realtimeSinceStartup;
             bool valid = _counts != null
-                && _builtVersion == _version
+                && _builtVersion == InventoryEvents.Version
                 && frame - _lastFrame <= 2
                 && now - _builtAt < 1f;
             _lastFrame = frame;
@@ -118,7 +108,7 @@ namespace Hurryitup
                 c[item.MarkedAsSpawnedInSession ? 0 : 1] += item.StackObjectsCount;
             }
             _counts = counts;
-            _builtVersion = _version;
+            _builtVersion = InventoryEvents.Version;
             _builtAt = now;
             Scans++;
             return counts;

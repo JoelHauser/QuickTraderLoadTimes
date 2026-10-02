@@ -4,17 +4,29 @@ Faster trader screens for SPT 4.1.x. Opening a trader used to leave spinners acr
 trader's items while they appeared a few at a time, and froze for about half a second on every
 trader switch.
 
-**Status: 0.6.0, a measurement harness with switchable fixes, all off by default.** Measured on
-one heavily modded install (2026-10-01), with every fix on and `CellBudgetMs = 16`: the first
-items appear about 0.2 s after opening a trader, and everything in view (trader and stash) is
-there in about 0.5 s on most traders, down from 1.6-3.0 s. Each item cell costs ~0.8-1.0 ms,
-down from 2.5-5 ms. The icons were never the problem: the trader grid built one cell per frame,
-each cell was slowed mostly by AllQuestsCheckmarks, and the stash rebuilt in a single frame on
-every trader switch.
+**Status: 0.7.0, release candidate, not yet released.** Fixes on by default; the measurement harness
+is off by default. Measured on one heavily modded SPT 4.1.6 install (2026-10-01) with every fix
+on and `CellBudgetMs = 16`: the first items appear about 0.2 s after opening a trader, and
+everything in view (trader and stash) is there in about 0.5 s on most traders, down from
+1.6-3.0 s. Each item cell costs ~0.8-1.0 ms, down from 2.5-5 ms. The icons were never the
+problem: the trader grid built one cell per frame, each cell was slowed mostly by
+AllQuestsCheckmarks, and the stash rebuilt in a single frame on every trader switch.
+
+## Compatibility
+
+- **AllQuestsCheckmarks:** two of the fixes stand in for parts of AllQuestsCheckmarks 1.4.0 with
+  the same logic, and check their first answers against the mod's own. With any other version of
+  AllQuestsCheckmarks they stay off and the log says so; without it they never install.
+- **Fika:** Fika 2.4.3's client patches none of the methods this touches. On a Fika headless client
+  (no graphics) the plugin installs nothing. The AllQuestsCheckmarks fixes step aside in raid,
+  solo or co-op, so the mod's squad-quest marks are unaffected. Not yet run with Fika installed.
+- Only the trader screen's two grids are rebuilt differently; every other screen uses the game's
+  own grid code.
 
 ## What it measures
 
-Every time a trader's deal screen opens, the plugin follows that open until every icon visible
+With `[Measurement] Enabled = true` (off by default, restart required), every time a trader's deal
+screen opens the plugin follows that open until every icon visible
 in the trader grid is drawn and nothing has finished loading for one second (or the screen
 closes, or 30 seconds pass). It then writes:
 
@@ -37,6 +49,10 @@ each request). Subtract it when comparing.
 
 ## Settings (`BepInEx\config\com.mybutthasarash.hurryitup.cfg`)
 
+Fixes (on by default, except `FastIconRender`):
+
+
+- `Enabled` (Measurement, default off, restart required): the measurement harness.
 - `RunLabel` (default `baseline`): written into every CSV row, to tell runs apart.
 - `ColdIconCache` (default off, restart required): points the item icon cache at an empty
   throwaway folder (`cold-cache\<launch>-vanilla` or `-fast` beside the DLL; the newest 6 are
@@ -46,7 +62,7 @@ each request). Subtract it when comparing.
   allows (top rows first), instead of one per frame.
 - `SpreadStashCells`: builds the trader screen's stash over several frames alongside the
   trader grid, instead of in one frame (the freeze on every trader switch).
-- `CellBudgetMs` (default 8): per-frame time for building cells, split evenly between the grids
+- `CellBudgetMs` (default 12): per-frame time for building cells, split evenly between the grids
   filling at the time. 16 roughly halves the fill time; for the fraction of a second it takes,
   frames run at about 30-40 FPS instead of 60.
 - `AqcStashCountCache`: AllQuestsCheckmarks compatibility. It counts the stash once and shares

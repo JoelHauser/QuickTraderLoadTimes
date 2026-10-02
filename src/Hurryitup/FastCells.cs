@@ -28,8 +28,9 @@ namespace Hurryitup
     ///   - SpreadStashCells: the trader screen's stash grid, which the game builds in one frame,
     ///     is built the same budgeted way, alongside the trader grid (0.5.0; 0.4.0 made it wait
     ///     for the trader grid). Grids filling at the same time split each frame's budget evenly.
-    /// Every other grid, and every case the game does not spread (scrolling an existing grid),
-    /// goes to the game's own method untouched.
+    /// Only the trader screen's two grids are touched (0.7.0; before, any grid that builds
+    /// gradually was). Every other grid, and every case the game does not spread (scrolling an
+    /// existing grid), goes to the game's own method untouched.
     ///
     /// A grid stays ours until its build finishes: 0.3.0 let go after the first cell, so the
     /// game's next call (GridViewMagnifier forces one a frame after Show) found a non-empty grid
@@ -71,12 +72,18 @@ namespace Hurryitup
             }
 
             bool startsEmpty = Views(__instance).Count <= 1;
-            bool traderGrid = HurryitupPlugin.FastTraderCells.Value && startsEmpty && __instance._isAsyncAllowed;
+            bool traderGrid = HurryitupPlugin.FastTraderCells.Value && startsEmpty && __instance._isAsyncAllowed && IsDealScreenTrader(__instance);
             bool stashGrid = HurryitupPlugin.SpreadStashCells.Value && startsEmpty && !__instance._isAsyncAllowed && IsDealScreenStash(__instance);
             if (!traderGrid && !stashGrid) return true;
 
             __result = Magnify(__instance, rect, force, stashGrid);
             return false;
+        }
+
+        private static bool IsDealScreenTrader(GridView grid)
+        {
+            TraderDealScreen screen = DealScreen;
+            return screen != null && screen.gameObject.activeInHierarchy && ReferenceEquals(grid, screen._traderGridView);
         }
 
         private static bool IsDealScreenStash(GridView grid)

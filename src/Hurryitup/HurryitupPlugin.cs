@@ -16,13 +16,19 @@ namespace Hurryitup
     /// measurements.csv beside this DLL.
     /// </summary>
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
+    // Soft: load after these when they're installed, so the AllQuestsCheckmarks version check and
+    // its types are there when the fixes are installed. Neither is required.
+    [BepInDependency(AqcSupport.Guid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(FikaGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class HurryitupPlugin : BaseUnityPlugin
     {
         public const string PluginGuid = "com.mybutthasarash.hurryitup";
         public const string PluginName = "Hurry It Up";
-        public const string PluginVersion = "0.6.0";
+        public const string PluginVersion = "0.7.0";
+        public const string FikaGuid = "com.fika.core";
 
         internal static ManualLogSource Log;
+        internal static ConfigEntry<bool> MeasurementEnabled;
         internal static ConfigEntry<string> RunLabel;
         internal static ConfigEntry<bool> ColdIconCache;
         internal static ConfigEntry<float> MaxSessionSeconds;
@@ -41,16 +47,20 @@ namespace Hurryitup
         internal static string ColdCacheDir { get; private set; }
 
         private static bool _environmentLogged;
+        private static bool _measuring;
 
         private void Awake()
         {
             Log = Logger;
             string pluginDir = Path.GetDirectoryName(Info.Location);
 
+            MeasurementEnabled = Config.Bind("Measurement", "Enabled", false,
+                "Restart required. Time every trader open into the BepInEx log and measurements.csv beside this " +
+                "DLL. For testing; it adds a little work of its own to every trader open.");
             RunLabel = Config.Bind("Measurement", "RunLabel", "baseline",
                 "Written into every CSV row, to tell before/after runs apart (e.g. baseline, prewarm-v1).");
             ColdIconCache = Config.Bind("Measurement", "ColdIconCache", false,
-                "Restart required. Points the item icon cache at an empty throwaway folder (cold-cache\\<launch> beside " +
+                "Restart required, and only with Enabled. Points the item icon cache at an empty throwaway folder (cold-cache\\<launch> beside " +
                 "this DLL; the newest 6 are kept for scripts\\compare-icons.ps1) so every icon renders from scratch. " +
                 "Your real icon cache is never touched.");
             MaxSessionSeconds = Config.Bind("Measurement", "MaxSessionSeconds", 30f,
@@ -59,29 +69,51 @@ namespace Hurryitup
                 "A trader open is finished once every visible icon is drawn and no icon has finished for this long.");
             FastIconRender = Config.Bind("Fixes", "FastIconRender", false,
                 "Render uncached item icons as fast as RenderBudgetMs per frame allows, instead of the game's " +
-                "one-icon-per-two-frames pacing. Takes effect immediately.");
+                "one-icon-per-two-frames pacing. Measured no faster in practice (rendering waits on cells), so off. " +
+                "Takes effect immediately.");
             RenderBudgetMs = Config.Bind("Fixes", "RenderBudgetMs", 8f,
                 "With FastIconRender: milliseconds of icon capturing allowed per frame. The first capture in a " +
                 "frame always runs.");
-            FastTraderCells = Config.Bind("Fixes", "FastTraderCells", false,
+            FastTraderCells = Config.Bind("Fixes", "FastTraderCells", true,
                 "Fill a trader's grid with as many cells per frame as CellBudgetMs allows, top rows first, instead " +
                 "of one cell per frame. Takes effect immediately.");
-            SpreadStashCells = Config.Bind("Fixes", "SpreadStashCells", false,
+            SpreadStashCells = Config.Bind("Fixes", "SpreadStashCells", true,
                 "On the trader screen, build the stash grid over several frames (after the trader's grid) instead " +
                 "of all in one frame, which is the half-second freeze on every trader switch. Takes effect immediately.");
-            CellBudgetMs = Config.Bind("Fixes", "CellBudgetMs", 8f,
-                "With FastTraderCells or SpreadStashCells: milliseconds of cell building allowed per frame. The " +
-                "first cell in a frame is always built.");
-            AqcStashCountCache = Config.Bind("Fixes", "AqcStashCountCache", false,
+            CellBudgetMs = Config.Bind("Fixes", "CellBudgetMs", 12f,
+                "With FastTraderCells or SpreadStashCells: milliseconds of cell building allowed per frame, split " +
+                "between the grids filling. Higher fills faster; for the fraction of a second it takes, the frame " +
+                "rate drops (16 gave ~30-40 FPS on a 60 FPS menu). The first cell in a frame is always built.");
+            AqcStashCountCache = Config.Bind("Fixes", "AqcStashCountCache", true,
                 "AllQuestsCheckmarks compatibility: count the stash once and share it between cells, instead of " +
                 "walking every owned item for every cell. Recounted on any inventory change. Takes effect immediately.");
-            QuestPanelOncePerFrame = Config.Bind("Fixes", "QuestPanelOncePerFrame", false,
+            QuestPanelOncePerFrame = Config.Bind("Fixes", "QuestPanelOncePerFrame", true,
                 "A new item cell sets up its quest checkmark three times in the same frame (the game calls it from " +
                 "Init and from both UpdateInfo calls). Do it once per cell per frame. Takes effect immediately.");
-            AqcQuestIndex = Config.Bind("Fixes", "AqcQuestIndex", false,
+            AqcQuestIndex = Config.Bind("Fixes", "AqcQuestIndex", true,
                 "AllQuestsCheckmarks compatibility: index the active quests once and answer each cell's quest lookup " +
                 "from the index, instead of walking every quest for every cell. Weapons use the mod's own lookup. " +
                 "Rebuilt on any inventory change; the first 50 answers are checked against the mod. Takes effect immediately.");
+
+            // A Fika headless client (or any -batchmode run) draws no UI: nothing here would ever run.
+            if (Application.isBatchMode || SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+            {
+                Log.LogInfo($"{PluginName} {PluginVersion}: no graphics (headless), not installing anything");
+                return;
+            }
+
+            Harmony harmony = new Harmony(PluginGuid);
+            Fixes.Apply(harmony);
+
+            bool fika = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FikaGuid);
+            Log.LogInfo($"{PluginName} {PluginVersion}: fixes installed: {string.Join("; ", Fixes.Applied)}" +
+                (Fixes.Failed.Count > 0 ? $"; FAILED: {string.Join("; ", Fixes.Failed)}" : "") +
+                (fika ? "; Fika detected" : ""));
+            Log.LogInfo($"settings: FastTraderCells {FastTraderCells.Value}, SpreadStashCells {SpreadStashCells.Value}, " +
+                $"CellBudgetMs {CellBudgetMs.Value}, QuestPanelOncePerFrame {QuestPanelOncePerFrame.Value}, " +
+                $"AqcStashCountCache {AqcStashCountCache.Value}, AqcQuestIndex {AqcQuestIndex.Value}, FastIconRender {FastIconRender.Value}");
+
+            if (!MeasurementEnabled.Value) return;
 
             string launchId = DateTime.Now.ToString("yyyyMMdd-HHmmss");
             ColdCacheActive = ColdIconCache.Value;
@@ -90,7 +122,8 @@ namespace Hurryitup
             if (ColdCacheActive) PrepareColdCache(coldRoot);
 
             Recorder.Init(pluginDir, launchId);
-            Probes.Apply(new Harmony(PluginGuid));
+            _measuring = true;
+            Probes.Apply(harmony);
             Log.LogInfo($"{PluginName} {PluginVersion} measuring trader opens; run label '{RunLabel.Value}'" +
                 (ColdCacheActive ? ", COLD icon cache" : "") + (FastIconRender.Value ? ", FastIconRender ON" : "") +
                 (FastTraderCells.Value ? ", FastTraderCells ON" : "") + (SpreadStashCells.Value ? ", SpreadStashCells ON" : "") +
@@ -121,7 +154,7 @@ namespace Hurryitup
 
         private void Update()
         {
-            Recorder.Tick(Time.unscaledDeltaTime * 1000f);
+            if (_measuring) Recorder.Tick(Time.unscaledDeltaTime * 1000f);
         }
 
         /// <summary>Once per launch, at the first trader open: what the numbers depend on.</summary>
