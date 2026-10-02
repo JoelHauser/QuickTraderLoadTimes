@@ -45,11 +45,12 @@ Extract the zip into your SPT folder (the one with `EscapeFromTarkov.exe`). It c
 
 ```
 BepInEx/plugins/QuickTraderLoadTimes/QuickTraderLoadTimes.dll                 the mod
-SPT_Runtime/user/mods/QuickTraderLoadTimes/QuickTraderLoadTimes.Server.dll    a startup banner
+SPT_Runtime/user/mods/QuickTraderLoadTimes/QuickTraderLoadTimes.Server.dll    a "loaded" line
 ```
 
-The BepInEx plugin does all the work. The server part only shows a banner when the SPT server
-starts and lists the mod among the server's mods. It's optional.
+The BepInEx plugin does all the work. The server part only prints one line when the SPT server
+starts (`Quick Trader Load Times 1.0.0 loaded`) and lists the mod among the server's mods. It's
+optional.
 
 To uninstall, delete both `QuickTraderLoadTimes` folders.
 

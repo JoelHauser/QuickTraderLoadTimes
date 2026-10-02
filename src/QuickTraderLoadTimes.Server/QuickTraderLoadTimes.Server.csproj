@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    The server half exists only to say hello: a banner when the SPT server starts, and the mod's
+    The server half exists only to say hello: one line when the SPT server starts, and the mod's
     entry in the server's mod list. Everything that makes traders fast is the BepInEx plugin
     (src/QuickTraderLoadTimes). Build with the user-local .NET 10 SDK:
     & "$env:USERPROFILE\.dotnet\dotnet.exe" build

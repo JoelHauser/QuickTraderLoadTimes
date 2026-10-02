@@ -6,7 +6,7 @@
     The mod is two assemblies that install to two different places:
 
       BepInEx/plugins/QuickTraderLoadTimes/QuickTraderLoadTimes.dll                  the fixes
-      SPT_Runtime/user/mods/QuickTraderLoadTimes/QuickTraderLoadTimes.Server.dll     the startup banner
+      SPT_Runtime/user/mods/QuickTraderLoadTimes/QuickTraderLoadTimes.Server.dll     the server's "loaded" line
 
     The zip is unpacked over the SPT root, so it carries those full paths. Entries are written
     by hand with forward slashes: PowerShell 5.1's Compress-Archive writes backslashes, which
@@ -59,7 +59,7 @@ $versions = [ordered]@{
     'plugin PluginVersion'  = Get-SourceVersion (Join-Path $root 'src\QuickTraderLoadTimes\QuickTraderLoadTimesPlugin.cs') 'PluginVersion = "([0-9.]+)"'
     'server csproj'         = Get-CsprojVersion $serverProj
     'server ModMetadata'    = Get-SourceVersion (Join-Path $root 'src\QuickTraderLoadTimes.Server\ModMetadata.cs') 'Version \{ get; init; \} = new\("([0-9.]+)"\)'
-    'server banner'         = Get-SourceVersion (Join-Path $root 'src\QuickTraderLoadTimes.Server\StartupBanner.cs') 'Version = "([0-9.]+)"'
+    'server loaded line'    = Get-SourceVersion (Join-Path $root 'src\QuickTraderLoadTimes.Server\StartupBanner.cs') 'Version = "([0-9.]+)"'
 }
 $versions.GetEnumerator() | ForEach-Object { Write-Host ("{0,-22} {1}" -f $_.Key, $_.Value) -ForegroundColor Cyan }
 $distinct = @($versions.Values | Select-Object -Unique)

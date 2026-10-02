@@ -21,7 +21,7 @@ public record ModMetadata : IModMetadata
 
     /// <summary>
     /// A hard gate: a mod outside the range loads nothing and logs nothing. "~4.1.0" is
-    /// &gt;=4.1.0 &lt;4.2.0. The server half only prints a banner, so it is safe on any 4.1.x.
+    /// &gt;=4.1.0 &lt;4.2.0. The server half only prints one line, so it is safe on any 4.1.x.
     /// </summary>
     public SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.0");
 

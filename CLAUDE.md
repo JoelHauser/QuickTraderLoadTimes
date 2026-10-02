@@ -136,16 +136,15 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
 - Release logging: the startup summary is Debug level; only fixes that failed to install log a
   warning. The AQC self-checks run only with Measurement on, and their failure warnings log once.
   Measurement is off by default, and Joel's cfg is set back to off.
-- New server half (src/QuickTraderLoadTimes.Server, net10.0, SPTarkov.Server.Core 4.1.2): a
-  startup banner because Joel asked for something fun on server start. It's a FigletText
-  "QUICK TRADER" rendered off-screen, then coloured per character on a slanted amber-to-violet
-  gradient, written straight to Spectre's AnsiConsole (SPT's ConsoleLogHandler uses
-  AnsiConsole.MarkupLine, its dispatcher is synchronous, and the console format is %message%, so
-  it lands in order). It also prints whether the BepInEx plugin sits next to the server, and a
-  random trader quip. A plain line goes through ISptLogger for the log file. It falls back to one
-  line below the art's width + 4 columns. It was previewed offline (bannerpreview in the
-  scratchpad, rendered to PNG) but **has not run in the real SPT server yet**; it is installed in
-  Joel's SPT_Runtime\user\mods.
+- New server half (src/QuickTraderLoadTimes.Server, net10.0, SPTarkov.Server.Core 4.1.2): one
+  line at server start, "Quick Trader Load Times 1.0.0 loaded", the name on an amber-to-violet
+  gradient, plus "(game plugin not found next to this server)" on the same line when the BepInEx
+  plugin isn't one folder up. It's written straight to Spectre's AnsiConsole (SPT's
+  ConsoleLogHandler uses AnsiConsole.MarkupLine, its dispatcher is synchronous, and the console
+  format is %message%, so it lands in order); if that throws, the same line goes through
+  ISptLogger in plain text. History: Joel first asked for "something fun", got a 5-line FigletText
+  banner with a trader quip, saw it in his server, called it "kinda obnoxious" and asked for one
+  line, because a mod shouldn't be loud at startup. **Keep it to one line.**
 - scripts/pack.ps1: checks that all five version numbers agree, builds, tests (25), writes
   dist\QuickTraderLoadTimes-<v>.zip with forward-slash entries, and installs with -Install.
 - A PowerShell edit blanked Joel's cfg once (the file was momentarily missing and the failed
