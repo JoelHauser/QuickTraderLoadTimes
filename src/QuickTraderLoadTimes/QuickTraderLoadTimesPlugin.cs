@@ -78,8 +78,8 @@ namespace QuickTraderLoadTimes
                 "Fill a trader's grid with as many cells per frame as CellBudgetMs allows, top rows first, instead " +
                 "of one cell per frame. Takes effect immediately.");
             SpreadStashCells = Config.Bind("Fixes", "SpreadStashCells", true,
-                "On the trader screen, build the stash grid over several frames (after the trader's grid) instead " +
-                "of all in one frame, which is the half-second freeze on every trader switch. Takes effect immediately.");
+                "On the trader screen, build the stash grid over several frames, alongside the trader's grid, instead " +
+                "of all in one frame (the half-second freeze on every trader switch). Takes effect immediately.");
             CellBudgetMs = Config.Bind("Fixes", "CellBudgetMs", 12f,
                 "With FastTraderCells or SpreadStashCells: milliseconds of cell building allowed per frame, split " +
                 "between the grids filling. Higher fills faster; for the fraction of a second it takes, the frame " +
