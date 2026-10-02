@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="src/QuickTraderLoadTimes/QuickTraderLoadTimes.csproj" />
+  <Project Path="src/QuickTraderLoadTimes.Server/QuickTraderLoadTimes.Server.csproj" />
   <Project Path="tests/QuickTraderLoadTimes.Tests/QuickTraderLoadTimes.Tests.csproj" />
 </Solution>

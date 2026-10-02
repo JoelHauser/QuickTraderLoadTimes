@@ -24,6 +24,7 @@
   -->
   <ItemGroup>
     <Compile Include="..\..\src\QuickTraderLoadTimes\Measure.cs" Link="Measure.cs" />
+    <Compile Include="..\..\src\QuickTraderLoadTimes.Server\BannerArt.cs" Link="BannerArt.cs" />
   </ItemGroup>
 
 </Project>

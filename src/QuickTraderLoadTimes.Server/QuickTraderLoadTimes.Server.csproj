@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The server half exists only to say hello: a banner when the SPT server starts, and the mod's
+    entry in the server's mod list. Everything that makes traders fast is the BepInEx plugin
+    (src/QuickTraderLoadTimes). Build with the user-local .NET 10 SDK:
+    & "$env:USERPROFILE\.dotnet\dotnet.exe" build
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>QuickTraderLoadTimes.Server</RootNamespace>
+    <AssemblyName>QuickTraderLoadTimes.Server</AssemblyName>
+
+    <!-- Must match ModMetadata.Version and the plugin's PluginVersion. -->
+    <Version>1.0.0</Version>
+
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Spectre.Console (the server's console renderer) comes with it. -->
+    <PackageReference Include="SPTarkov.Server.Core" Version="4.1.2">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

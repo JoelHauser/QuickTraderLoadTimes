@@ -25,8 +25,8 @@ namespace QuickTraderLoadTimes
     /// does (quest item, found-in-raid, only-found-in-raid flag). Weapons always go to the mod's own
     /// method, since their answer also checks the weapon's build, and so does everything outside the
     /// trader and flea market screens (Scope), every raid included. The index is rebuilt on the same
-    /// rules as AqcCompat's stash count (any inventory event, 2 idle frames, 1 s). The first 50
-    /// answers also run the mod's own method and compare.
+    /// rules as AqcCompat's stash count (any inventory event, 2 idle frames, 1 s). With Measurement
+    /// on, the first 50 answers also run the mod's own method and compare.
     /// </summary>
     internal static class AqcQuestIndex
     {
@@ -46,7 +46,9 @@ namespace QuickTraderLoadTimes
         private static int _builtVersion = -1;
         private static int _lastFrame = -100;
         private static float _builtAt;
-        private static int _verifyLeft = VerifyCalls;
+        private static int _verifyLeft;
+        private static bool _warnedLookup;
+        private static bool _warnedBuild;
         private static int _verifyMismatches;
         private static bool _inVerify;
 
@@ -71,6 +73,8 @@ namespace QuickTraderLoadTimes
             }
             MethodInfo prefix = AccessTools.Method(typeof(AqcQuestIndex), nameof(Prefix)).MakeGenericMethod(currentQuest);
             harmony.Patch(_original, prefix: new HarmonyMethod(prefix));
+            // The self-check (answering a few cells both ways) is for testing: only with Measurement on.
+            _verifyLeft = QuickTraderLoadTimesPlugin.MeasurementEnabled.Value ? VerifyCalls : 0;
             Status = "patched";
         }
 
@@ -130,7 +134,11 @@ namespace QuickTraderLoadTimes
             }
             catch (Exception e)
             {
-                QuickTraderLoadTimesPlugin.Log.LogWarning("AQC quest index lookup failed, using the mod's own: " + e.Message);
+                if (!_warnedLookup)
+                {
+                    _warnedLookup = true;
+                    QuickTraderLoadTimesPlugin.Log.LogWarning("AllQuestsCheckmarks quest index lookup failed, using the mod's own (logged once): " + e.Message);
+                }
                 return true;
             }
         }
@@ -153,7 +161,11 @@ namespace QuickTraderLoadTimes
             }
             catch (Exception e)
             {
-                QuickTraderLoadTimesPlugin.Log.LogWarning("AQC quest index could not be built, using the mod's own lookup: " + e.Message);
+                if (!_warnedBuild)
+                {
+                    _warnedBuild = true;
+                    QuickTraderLoadTimesPlugin.Log.LogWarning("AllQuestsCheckmarks quest index could not be built, using the mod's own lookup (logged once): " + e.Message);
+                }
                 _index = null;
                 return null;
             }

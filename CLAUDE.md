@@ -128,6 +128,29 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
   notice it. Several rows include scrolling and tab switching (many disk loads, 128 new renders on
   Peacekeeper), so their all_visible/cells_complete aren't open-to-done times.
 
+## 1.0.0 (2026-10-01)
+
+- Joel ran 0.8.0 ("it runs flawlessly"): no errors from the mod, 29/29 probes applied, AQC
+  self-checks 20/20 and 50/50. Everything in view on 0.42-0.61 s for most traders; worst frame
+  0.1-0.27 s (0.47 s for Prapor, the first trader after launch).
+- Release logging: the startup summary is Debug level; only fixes that failed to install log a
+  warning. The AQC self-checks run only with Measurement on, and their failure warnings log once.
+  Measurement is off by default, and Joel's cfg is set back to off.
+- New server half (src/QuickTraderLoadTimes.Server, net10.0, SPTarkov.Server.Core 4.1.2): a
+  startup banner because Joel asked for something fun on server start. It's a FigletText
+  "QUICK TRADER" rendered off-screen, then coloured per character on a slanted amber-to-violet
+  gradient, written straight to Spectre's AnsiConsole (SPT's ConsoleLogHandler uses
+  AnsiConsole.MarkupLine, its dispatcher is synchronous, and the console format is %message%, so
+  it lands in order). It also prints whether the BepInEx plugin sits next to the server, and a
+  random trader quip. A plain line goes through ISptLogger for the log file. It falls back to one
+  line below the art's width + 4 columns. It was previewed offline (bannerpreview in the
+  scratchpad, rendered to PNG) but **has not run in the real SPT server yet**; it is installed in
+  Joel's SPT_Runtime\user\mods.
+- scripts/pack.ps1: checks that all five version numbers agree, builds, tests (25), writes
+  dist\QuickTraderLoadTimes-<v>.zip with forward-slash entries, and installs with -Install.
+- A PowerShell edit blanked Joel's cfg once (the file was momentarily missing and the failed
+  read was written back); it was restored from known values (CellBudgetMs 16, measurement off).
+
 ## 0.8.0, scope (2026-10-01, not yet run in game)
 
 Joel: "this should only effect traders and the flea market too ... nothing in raid". Scope.cs:

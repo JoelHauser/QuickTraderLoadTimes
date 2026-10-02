@@ -24,7 +24,7 @@ namespace QuickTraderLoadTimes
     {
         public const string PluginGuid = "com.mybutthasarash.quicktraderloadtimes";
         public const string PluginName = "Quick Trader Load Times";
-        public const string PluginVersion = "0.8.0";
+        public const string PluginVersion = "1.0.0";
         public const string FikaGuid = "com.fika.core";
 
         internal static ManualLogSource Log;
@@ -86,30 +86,36 @@ namespace QuickTraderLoadTimes
                 "rate drops (16 gave ~30-40 FPS on a 60 FPS menu). The first cell in a frame is always built.");
             AqcStashCountCache = Config.Bind("Fixes", "AqcStashCountCache", true,
                 "AllQuestsCheckmarks compatibility: count the stash once and share it between cells, instead of " +
-                "walking every owned item for every cell. Recounted on any inventory change. Takes effect immediately.");
+                "walking every owned item for every cell. Recounted on any inventory change. Only on the trader screen " +
+                "and the flea market. Takes effect immediately.");
             QuestPanelOncePerFrame = Config.Bind("Fixes", "QuestPanelOncePerFrame", true,
                 "A new item cell sets up its quest checkmark three times in the same frame (the game calls it from " +
                 "Init and from both UpdateInfo calls). Do it once per cell per frame. Takes effect immediately.");
             AqcQuestIndex = Config.Bind("Fixes", "AqcQuestIndex", true,
                 "AllQuestsCheckmarks compatibility: index the active quests once and answer each cell's quest lookup " +
                 "from the index, instead of walking every quest for every cell. Weapons use the mod's own lookup. " +
-                "Rebuilt on any inventory change; the first 50 answers are checked against the mod. Takes effect immediately.");
+                "Rebuilt on any inventory change. Only on the trader screen and the flea market. Takes effect immediately.");
 
             // A Fika headless client (or any -batchmode run) draws no UI: nothing here would ever run.
             if (Application.isBatchMode || SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
             {
-                Log.LogInfo($"{PluginName} {PluginVersion}: no graphics (headless), not installing anything");
+                Log.LogDebug($"{PluginName} {PluginVersion}: no graphics (headless), not installing anything");
                 return;
             }
 
             Harmony harmony = new Harmony(PluginGuid);
             Fixes.Apply(harmony);
 
+            // Quiet by default: the summary is Debug level (not written unless BepInEx's log level
+            // includes Debug). Only a fix that failed to install is worth a line in everyone's log.
+            if (Fixes.Failed.Count > 0)
+            {
+                Log.LogWarning($"{PluginName} {PluginVersion}: some fixes could not be installed and are off: {string.Join("; ", Fixes.Failed)}");
+            }
             bool fika = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FikaGuid);
-            Log.LogInfo($"{PluginName} {PluginVersion}: fixes installed: {string.Join("; ", Fixes.Applied)}" +
-                (Fixes.Failed.Count > 0 ? $"; FAILED: {string.Join("; ", Fixes.Failed)}" : "") +
+            Log.LogDebug($"{PluginName} {PluginVersion}: fixes installed: {string.Join("; ", Fixes.Applied)}" +
                 (fika ? "; Fika detected" : ""));
-            Log.LogInfo($"settings: FastTraderCells {FastTraderCells.Value}, SpreadStashCells {SpreadStashCells.Value}, " +
+            Log.LogDebug($"settings: FastTraderCells {FastTraderCells.Value}, SpreadStashCells {SpreadStashCells.Value}, " +
                 $"CellBudgetMs {CellBudgetMs.Value}, QuestPanelOncePerFrame {QuestPanelOncePerFrame.Value}, " +
                 $"AqcStashCountCache {AqcStashCountCache.Value}, AqcQuestIndex {AqcQuestIndex.Value}, FastIconRender {FastIconRender.Value}");
 

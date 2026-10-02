@@ -26,8 +26,8 @@ namespace QuickTraderLoadTimes
     ///   - more than 2 frames pass without a request (the cells being built have stopped), or
     ///   - it is more than 1 second old (a backstop in case a change raises no event).
     /// Only on the trader deal screen and the flea market, out of raid (Scope); everywhere else,
-    /// including every raid, the mod's own method runs unchanged. The first 20 answers are also computed the
-    /// mod's way and compared; the result is logged.
+    /// including every raid, the mod's own method runs unchanged. With Measurement on, the first 20
+    /// answers are also computed the mod's way and compared, and the result is logged.
     /// </summary>
     internal static class AqcCompat
     {
@@ -41,7 +41,7 @@ namespace QuickTraderLoadTimes
         private static int _builtVersion = -1;
         private static int _lastFrame = -100;
         private static float _builtAt;
-        private static int _verifyLeft = VerifyCalls;
+        private static int _verifyLeft;
         private static int _verifyMismatches;
 
         public static int Scans;
@@ -65,6 +65,8 @@ namespace QuickTraderLoadTimes
                 throw new MissingMemberException("AllQuestsCheckmarks StashHelper.GetItemsInStash / ItemsCount has changed");
             }
             harmony.Patch(target, prefix: new HarmonyMethod(typeof(AqcCompat), nameof(Prefix)));
+            // The self-check (answering a few cells both ways) is for testing: only with Measurement on.
+            _verifyLeft = QuickTraderLoadTimesPlugin.MeasurementEnabled.Value ? VerifyCalls : 0;
             Status = "patched";
         }
 
