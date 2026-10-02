@@ -85,6 +85,10 @@ namespace Hurryitup
         private readonly int _aqcScansAtOpen;
         private readonly int _aqcServedAtOpen;
         private readonly int _questSkippedAtOpen;
+        private readonly int _questIndexBuildsAtOpen;
+        private readonly int _questIndexServedAtOpen;
+        private int _stashCells;
+        private double _tStashComplete;
         private readonly StringBuilder _timeline = new StringBuilder();
         private int _lastTimelineCells = -1, _lastTimelineVisible = -1, _lastTimelineDrawn = -1;
         private bool _lastTimelineActive;
@@ -150,6 +154,8 @@ namespace Hurryitup
             _aqcScansAtOpen = AqcCompat.Scans;
             _aqcServedAtOpen = AqcCompat.Served;
             _questSkippedAtOpen = QuestPanelOnce.Skipped;
+            _questIndexBuildsAtOpen = AqcQuestIndex.Builds;
+            _questIndexServedAtOpen = AqcQuestIndex.Served;
             T0 = Stopwatch.GetTimestamp();
         }
 
@@ -231,6 +237,7 @@ namespace Hurryitup
             }
 
             int visible = ScanVisible(now);
+            ScanStash(now);
 
             if (Screen == null || !Screen.gameObject.activeInHierarchy)
             {
@@ -298,6 +305,9 @@ namespace Hurryitup
             Timeline(now, true, views, visible, drawn);
             if (views > _gridViews)
             {
+                // A cell arrived: "all visible drawn" only counts once the cells stop arriving
+                // (0.5.0 fired it while the first few cells, already drawn, were all there was).
+                _allVisibleSince = null;
                 _gridViews = views;
                 _tViewsComplete = now;
             }
@@ -319,6 +329,20 @@ namespace Hurryitup
                 _visibleAtAll = Math.Max(_visibleAtAll, visible);
             }
             return visible;
+        }
+
+        /// <summary>When the trader screen's stash grid got its last cell (its cells all draw as they arrive).</summary>
+        private void ScanStash(double now)
+        {
+            TradingGridView stash = Screen != null ? Screen._stashGridView : null;
+            if (stash == null || !stash.gameObject.activeInHierarchy) return;
+            int cells = 0;
+            foreach (ItemView _ in stash.GridItemViews) cells++;
+            if (cells > _stashCells)
+            {
+                _stashCells = cells;
+                _tStashComplete = now;
+            }
         }
 
         /// <summary>
@@ -391,7 +415,9 @@ namespace Hurryitup
             sb.AppendLine($"  frames: {Frames.Count}, p50 {Fmt.Ms(Frames.Percentile(50))} p95 {Fmt.Ms(Frames.Percentile(95))} max {Fmt.Ms(Frames.Max)} ms; >33 ms {Frames.CountOver(33)}, >50 ms {Frames.CountOver(50)}, >100 ms {Frames.CountOver(100)}; baseline before open p50 {Fmt.Ms(BaselineP50)} p95 {Fmt.Ms(BaselineP95)}");
             sb.AppendLine($"  queues: JobScheduler max {_maxJobQueue}, icon render queue max {_maxRenderQueue}");
             sb.AppendLine($"  FastTraderCells: {(HurryitupPlugin.FastTraderCells.Value ? "ON" : "off")}, SpreadStashCells: {(HurryitupPlugin.SpreadStashCells.Value ? "ON" : "off")}, cell budget {Fmt.Ms(HurryitupPlugin.CellBudgetMs.Value)} ms");
+            sb.AppendLine($"  stash grid: {_stashCells} cells, last added at {(_stashCells == 0 ? "-" : Fmt.Ms(_tStashComplete) + " ms")}");
             sb.AppendLine($"  trader grid timeline (ms: cells/visible/drawn): {_timeline}");
+            sb.AppendLine($"  AqcQuestIndex: {(HurryitupPlugin.AqcQuestIndex.Value ? "ON" : "off")} ({AqcQuestIndex.Status}); index builds {AqcQuestIndex.Builds - _questIndexBuildsAtOpen} for {AqcQuestIndex.Served - _questIndexServedAtOpen} answers");
             sb.AppendLine($"  QuestPanelOncePerFrame: {(HurryitupPlugin.QuestPanelOncePerFrame.Value ? "ON" : "off")}; repeat calls skipped {QuestPanelSkipped}");
             sb.AppendLine($"  AqcStashCountCache: {(HurryitupPlugin.AqcStashCountCache.Value ? "ON" : "off")} ({AqcCompat.Status}); stash walks {AqcCompat.Scans - _aqcScansAtOpen} for {AqcCompat.Served - _aqcServedAtOpen} cell answers");
             sb.AppendLine($"  FastIconRender: {(HurryitupPlugin.FastIconRender.Value ? "ON, budget " + Fmt.Ms(HurryitupPlugin.RenderBudgetMs.Value) + " ms" : "off")}; its captures {FastRender.Captures - _fastCapturesAtOpen}, frames with 2+ captures {FastRender.FramesWithMultipleCaptures - _fastMultiFramesAtOpen}");
@@ -423,6 +449,11 @@ namespace Hurryitup
             Add("aqc_served", (AqcCompat.Served - _aqcServedAtOpen).ToString());
             Add("quest_once", HurryitupPlugin.QuestPanelOncePerFrame.Value ? "1" : "0");
             Add("quest_skipped", QuestPanelSkipped.ToString());
+            Add("aqc_quest_index", HurryitupPlugin.AqcQuestIndex.Value ? "1" : "0");
+            Add("aqc_index_builds", (AqcQuestIndex.Builds - _questIndexBuildsAtOpen).ToString());
+            Add("aqc_index_served", (AqcQuestIndex.Served - _questIndexServedAtOpen).ToString());
+            Add("stash_cells", _stashCells.ToString());
+            Add("stash_complete_ms", _stashCells == 0 ? "" : Fmt.Ms(_tStashComplete));
             Add("open_index", OpenIndex.ToString());
             Add("trader", TraderName);
             Add("trader_id", TraderId);

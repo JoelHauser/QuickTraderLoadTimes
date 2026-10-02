@@ -96,6 +96,33 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
 - Joel asked for the stash to fill at the same time as the trader: 0.5.0 drops the wait and
   splits each frame's CellBudgetMs evenly between the grids filling.
 
+## Measured (0.5.0 "together", 2026-10-01) and 0.6.0
+
+- Corrected "all items in view" (later of all_visible_ms and cells_complete_ms; 0.5.0's
+  all_visible_ms fired once the first few cells, already drawn, were all there was): Peacekeeper
+  1,945 ms with fixes off -> 1,059 (0.4.0) -> 650 first open / 573 reopen (0.5.0). Most traders
+  0.4-0.9 s. 0.6.0 resets all_visible when a new cell arrives, and logs stash_complete_ms.
+- Per cell ~1.35 ms: AQC's single remaining quest-panel call ~0.57 ms (QuestsHelper.
+  GetActiveQuestsWithItem walks every started quest's every condition), cell setup ~0.2 ms,
+  UpdateInfo x2 + UpdateStaticInfo + Init ~0.25 ms, pool residual ~0.3 ms. The two UpdateInfo
+  calls (one from BindEvent(AssortmentUpdated) inside NewTradingItemView, one from Init) can't
+  safely be cut: UpdateStaticInfo runs between them and IsSearched gates the icon.
+- 0.6.0 AqcQuestIndex: one index of template -> quest matches per burst (same rules as the mod;
+  weapons go to the mod), the prefix closed over the mod's internal CurrentQuest with
+  MakeGenericMethod so the out parameters match exactly, and the first 50 answers checked. Joel's
+  test config: CellBudgetMs 16 (option 1), RunLabel fast16.
+
+## Measured (0.6.0 "fast16", 2026-10-01; Joel: "its incredibly fast now wow")
+
+- Self-checks: AQC stash count 20/20, AQC quest index 50/50, probes 34 applied, 0 failed.
+- Per cell 1.35 -> ~0.8-1.0 ms; the quest panel per open 100-300 -> 20-100 ms.
+- Clean opens: Skier first open, all in view 476 ms (0.5.0: 754; fixes off: 1,992); first icon
+  ~170-250 ms on most traders; stash done 50-460 ms. Prapor as the first trader after launch:
+  1,515 ms, waiting on ~0.7 s of server requests.
+- Cost: frame p95 28-60 ms during the fill (0.5.0: 17-27) with CellBudgetMs 16; Joel didn't
+  notice it. Several rows include scrolling and tab switching (many disk loads, 128 new renders on
+  Peacekeeper), so their all_visible/cells_complete aren't open-to-done times.
+
 ## How the game loads icons (from the 4.1.x client, decompiled 2026-10-01)
 
 - Each cell calls `ItemView.RefreshIcon` -> `ItemViewFactory.LoadItemIcon` ->

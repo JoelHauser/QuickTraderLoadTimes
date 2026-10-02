@@ -157,6 +157,17 @@ namespace Hurryitup
                 Failed.Add("FastCells: " + e.Message);
             }
 
+            // Fix candidate 5, inert unless AqcQuestIndex is on.
+            try
+            {
+                AqcQuestIndex.Apply(harmony);
+                Applied.Add("AqcQuestIndex (" + AqcQuestIndex.Status + ")");
+            }
+            catch (Exception e)
+            {
+                Failed.Add("AqcQuestIndex: " + e.Message);
+            }
+
             // Fix candidate 4, inert unless QuestPanelOncePerFrame is on.
             try
             {

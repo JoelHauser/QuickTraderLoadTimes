@@ -20,7 +20,7 @@ namespace Hurryitup
     {
         public const string PluginGuid = "com.mybutthasarash.hurryitup";
         public const string PluginName = "Hurry It Up";
-        public const string PluginVersion = "0.5.0";
+        public const string PluginVersion = "0.6.0";
 
         internal static ManualLogSource Log;
         internal static ConfigEntry<string> RunLabel;
@@ -34,6 +34,7 @@ namespace Hurryitup
         internal static ConfigEntry<float> CellBudgetMs;
         internal static ConfigEntry<bool> AqcStashCountCache;
         internal static ConfigEntry<bool> QuestPanelOncePerFrame;
+        internal static ConfigEntry<bool> AqcQuestIndex;
 
         /// <summary>ColdIconCache as it was at startup; the icon creator only reads its path once.</summary>
         internal static bool ColdCacheActive { get; private set; }
@@ -77,6 +78,10 @@ namespace Hurryitup
             QuestPanelOncePerFrame = Config.Bind("Fixes", "QuestPanelOncePerFrame", false,
                 "A new item cell sets up its quest checkmark three times in the same frame (the game calls it from " +
                 "Init and from both UpdateInfo calls). Do it once per cell per frame. Takes effect immediately.");
+            AqcQuestIndex = Config.Bind("Fixes", "AqcQuestIndex", false,
+                "AllQuestsCheckmarks compatibility: index the active quests once and answer each cell's quest lookup " +
+                "from the index, instead of walking every quest for every cell. Weapons use the mod's own lookup. " +
+                "Rebuilt on any inventory change; the first 50 answers are checked against the mod. Takes effect immediately.");
 
             string launchId = DateTime.Now.ToString("yyyyMMdd-HHmmss");
             ColdCacheActive = ColdIconCache.Value;
@@ -90,7 +95,8 @@ namespace Hurryitup
                 (ColdCacheActive ? ", COLD icon cache" : "") + (FastIconRender.Value ? ", FastIconRender ON" : "") +
                 (FastTraderCells.Value ? ", FastTraderCells ON" : "") + (SpreadStashCells.Value ? ", SpreadStashCells ON" : "") +
                 (AqcStashCountCache.Value ? ", AqcStashCountCache ON" : "") +
-                (QuestPanelOncePerFrame.Value ? ", QuestPanelOncePerFrame ON" : ""));
+                (QuestPanelOncePerFrame.Value ? ", QuestPanelOncePerFrame ON" : "") +
+                (AqcQuestIndex.Value ? ", AqcQuestIndex ON" : ""));
         }
 
         /// <summary>

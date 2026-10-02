@@ -4,11 +4,13 @@ Faster trader screens for SPT 4.1.x. Opening a trader used to leave spinners acr
 trader's items while they appeared a few at a time, and froze for about half a second on every
 trader switch.
 
-**Status: 0.5.0, a measurement harness with switchable fixes, all off by default.** Measured on
-one heavily modded install (2026-10-01), every item in view now shows in 0.4-0.9 s, down from
-1.6-3.0 s, and the worst frame is 100-220 ms, down from 360-920 ms. The icons were never the
-problem: the trader grid built one cell per frame, each cell cost 2.5-5 ms (mostly
-AllQuestsCheckmarks), and the stash rebuilt in a single frame on every switch.
+**Status: 0.6.0, a measurement harness with switchable fixes, all off by default.** Measured on
+one heavily modded install (2026-10-01), with every fix on and `CellBudgetMs = 16`: the first
+items appear about 0.2 s after opening a trader, and everything in view (trader and stash) is
+there in about 0.5 s on most traders, down from 1.6-3.0 s. Each item cell costs ~0.8-1.0 ms,
+down from 2.5-5 ms. The icons were never the problem: the trader grid built one cell per frame,
+each cell was slowed mostly by AllQuestsCheckmarks, and the stash rebuilt in a single frame on
+every trader switch.
 
 ## What it measures
 
@@ -45,12 +47,16 @@ each request). Subtract it when comparing.
 - `SpreadStashCells`: builds the trader screen's stash over several frames alongside the
   trader grid, instead of in one frame (the freeze on every trader switch).
 - `CellBudgetMs` (default 8): per-frame time for building cells, split evenly between the grids
-  filling at the time.
+  filling at the time. 16 roughly halves the fill time; for the fraction of a second it takes,
+  frames run at about 30-40 FPS instead of 60.
 - `AqcStashCountCache`: AllQuestsCheckmarks compatibility. It counts the stash once and shares
   the count between cells, instead of walking every owned item for every cell. The count is
   redone on any inventory change, and the first 20 answers are checked against the mod's own.
 - `QuestPanelOncePerFrame`: sets up each new cell's quest checkmark once instead of three times
   in the same frame.
+- `AqcQuestIndex`: AllQuestsCheckmarks compatibility. It indexes the active quests once and
+  answers each cell's quest lookup from the index, instead of walking every quest for every cell.
+  Weapons use the mod's own lookup. The first 50 answers are checked against the mod's.
 - `FastIconRender` / `RenderBudgetMs`: renders uncached icons within a per-frame budget instead
   of the game's one icon every two frames. Its icons match the game's own, but it gave no
   measurable gain, because rendering is fed by cell creation; leave it off.
