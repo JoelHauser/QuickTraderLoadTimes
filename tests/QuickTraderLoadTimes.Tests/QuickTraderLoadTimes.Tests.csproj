@@ -23,7 +23,7 @@
     dependency, and keeping it that way is what makes this possible.
   -->
   <ItemGroup>
-    <Compile Include="..\..\src\Hurryitup\Measure.cs" Link="Measure.cs" />
+    <Compile Include="..\..\src\QuickTraderLoadTimes\Measure.cs" Link="Measure.cs" />
   </ItemGroup>
 
 </Project>

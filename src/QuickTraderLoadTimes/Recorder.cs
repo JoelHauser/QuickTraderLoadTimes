@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using EFT.Trading;
 using EFT.UI;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// Owns the trader open being measured. Probes report into it; the plugin's Update drives it.
@@ -45,7 +45,7 @@ namespace Hurryitup
 
         public static void Begin(TraderDealScreen screen, Trader trader)
         {
-            HurryitupPlugin.LogEnvironmentOnce();
+            QuickTraderLoadTimesPlugin.LogEnvironmentOnce();
             lock (Gate)
             {
                 if (_current != null) End("next trader opened");
@@ -73,7 +73,7 @@ namespace Hurryitup
                     _ringCount = Math.Min(_ringCount + 1, BaselineFrames);
                     return;
                 }
-                if (_current.Tick(frameMs, HurryitupPlugin.MaxSessionSeconds.Value, HurryitupPlugin.SettleSeconds.Value))
+                if (_current.Tick(frameMs, QuickTraderLoadTimesPlugin.MaxSessionSeconds.Value, QuickTraderLoadTimesPlugin.SettleSeconds.Value))
                 {
                     End(null);
                 }
@@ -130,9 +130,9 @@ namespace Hurryitup
             if (reason != null) s.EndReason = reason;
             s.Finish();
 
-            string label = HurryitupPlugin.RunLabel.Value;
-            bool cold = HurryitupPlugin.ColdCacheActive;
-            HurryitupPlugin.Log.LogInfo("\n" + s.Report(label, _launchId, cold));
+            string label = QuickTraderLoadTimesPlugin.RunLabel.Value;
+            bool cold = QuickTraderLoadTimesPlugin.ColdCacheActive;
+            QuickTraderLoadTimesPlugin.Log.LogInfo("\n" + s.Report(label, _launchId, cold));
 
             try
             {
@@ -143,7 +143,7 @@ namespace Hurryitup
             }
             catch (Exception e)
             {
-                HurryitupPlugin.Log.LogError("could not write " + _csvPath + ": " + e.Message);
+                QuickTraderLoadTimesPlugin.Log.LogError("could not write " + _csvPath + ": " + e.Message);
             }
         }
 
@@ -162,7 +162,7 @@ namespace Hurryitup
                     string aside = Path.Combine(Path.GetDirectoryName(_csvPath),
                         "measurements-old-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".csv");
                     File.Move(_csvPath, aside);
-                    HurryitupPlugin.Log.LogInfo("columns changed; previous measurements moved to " + aside);
+                    QuickTraderLoadTimesPlugin.Log.LogInfo("columns changed; previous measurements moved to " + aside);
                 }
             }
             if (!File.Exists(_csvPath)) File.WriteAllText(_csvPath, header + Environment.NewLine);

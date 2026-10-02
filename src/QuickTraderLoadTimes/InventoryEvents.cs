@@ -1,7 +1,7 @@
 using EFT.InventoryLogic;
 using HarmonyLib;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// A counter bumped on every item add, remove or refresh event any ItemController raises (the

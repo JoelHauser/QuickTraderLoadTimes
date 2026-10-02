@@ -10,7 +10,7 @@ using EFT.UI.DragAndDrop;
 using HarmonyLib;
 using UnityEngine;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// The patches the fixes need, installed whether or not Measurement is on. Each fix also checks

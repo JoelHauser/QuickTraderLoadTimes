@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="src/Hurryitup/Hurryitup.csproj" />
-  <Project Path="tests/Hurryitup.Tests/Hurryitup.Tests.csproj" />
-</Solution>

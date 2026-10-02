@@ -10,7 +10,7 @@ using EFT.UI.DragAndDrop;
 using HarmonyLib;
 using UnityEngine;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// Fix candidate 2: build grid cells within a per-frame time budget.
@@ -62,7 +62,7 @@ namespace Hurryitup
 
         public static bool Prefix(GridView __instance, Rect rect, bool force, ref Task __result)
         {
-            if (!HurryitupPlugin.FastTraderCells.Value && !HurryitupPlugin.SpreadStashCells.Value) return true;
+            if (!QuickTraderLoadTimesPlugin.FastTraderCells.Value && !QuickTraderLoadTimesPlugin.SpreadStashCells.Value) return true;
             if (!__instance.IsMagnified || __instance.Grid == null) return true;
 
             if (Filling.TryGetValue(__instance, out bool fillingStash))
@@ -72,8 +72,8 @@ namespace Hurryitup
             }
 
             bool startsEmpty = Views(__instance).Count <= 1;
-            bool traderGrid = HurryitupPlugin.FastTraderCells.Value && startsEmpty && __instance._isAsyncAllowed && IsDealScreenTrader(__instance);
-            bool stashGrid = HurryitupPlugin.SpreadStashCells.Value && startsEmpty && !__instance._isAsyncAllowed && IsDealScreenStash(__instance);
+            bool traderGrid = QuickTraderLoadTimesPlugin.FastTraderCells.Value && startsEmpty && __instance._isAsyncAllowed && IsDealScreenTrader(__instance);
+            bool stashGrid = QuickTraderLoadTimesPlugin.SpreadStashCells.Value && startsEmpty && !__instance._isAsyncAllowed && IsDealScreenStash(__instance);
             if (!traderGrid && !stashGrid) return true;
 
             __result = Magnify(__instance, rect, force, stashGrid);
@@ -171,7 +171,7 @@ namespace Hurryitup
                 SpentThisFrame.Clear();
             }
             if (!SpentThisFrame.TryGetValue(grid, out double spent)) return true;
-            return spent < HurryitupPlugin.CellBudgetMs.Value / Math.Max(1, Filling.Count);
+            return spent < QuickTraderLoadTimesPlugin.CellBudgetMs.Value / Math.Max(1, Filling.Count);
         }
     }
 }

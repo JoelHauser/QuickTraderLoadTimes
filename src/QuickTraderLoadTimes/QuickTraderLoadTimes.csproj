@@ -3,12 +3,12 @@
   <PropertyGroup>
     <!-- net472 because that is what the game's mono runtime loads. -->
     <TargetFramework>net472</TargetFramework>
-    <RootNamespace>Hurryitup</RootNamespace>
-    <AssemblyName>Hurryitup</AssemblyName>
+    <RootNamespace>QuickTraderLoadTimes</RootNamespace>
+    <AssemblyName>QuickTraderLoadTimes</AssemblyName>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
 
-    <!-- Must match HurryitupPlugin.PluginVersion. -->
+    <!-- Must match QuickTraderLoadTimesPlugin.PluginVersion. -->
     <Version>0.7.0</Version>
 
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -17,7 +17,7 @@
     <SPTPath Condition="'$(SPTPath)' == ''">H:\SPT4.1.X</SPTPath>
     <GameManaged>$(SPTPath)\EscapeFromTarkov_Data\Managed</GameManaged>
     <BepInExCore>$(SPTPath)\BepInEx\core</BepInExCore>
-    <PluginDeployDir>$(SPTPath)\BepInEx\plugins\Hurryitup</PluginDeployDir>
+    <PluginDeployDir>$(SPTPath)\BepInEx\plugins\QuickTraderLoadTimes</PluginDeployDir>
   </PropertyGroup>
 
   <Target Name="ValidateSPTPath" BeforeTargets="BeforeBuild">

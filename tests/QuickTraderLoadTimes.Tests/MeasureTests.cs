@@ -1,4 +1,4 @@
-using Hurryitup;
+using QuickTraderLoadTimes;
 
 public class SeriesTests
 {

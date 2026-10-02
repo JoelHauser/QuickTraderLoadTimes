@@ -8,11 +8,11 @@ using Diz.Jobs;
 using HarmonyLib;
 using UnityEngine;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// Phase 1: a measurement harness for trader icon loading. Every trader open is written to
-    /// the BepInEx log as a "===== Hurryitup: trader open =====" block and appended as a row to
+    /// the BepInEx log as a "===== Quick Trader Load Times: trader open =====" block and appended as a row to
     /// measurements.csv beside this DLL.
     /// </summary>
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
@@ -20,10 +20,10 @@ namespace Hurryitup
     // its types are there when the fixes are installed. Neither is required.
     [BepInDependency(AqcSupport.Guid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(FikaGuid, BepInDependency.DependencyFlags.SoftDependency)]
-    public sealed class HurryitupPlugin : BaseUnityPlugin
+    public sealed class QuickTraderLoadTimesPlugin : BaseUnityPlugin
     {
-        public const string PluginGuid = "com.mybutthasarash.hurryitup";
-        public const string PluginName = "Hurry It Up";
+        public const string PluginGuid = "com.mybutthasarash.quicktraderloadtimes";
+        public const string PluginName = "Quick Trader Load Times";
         public const string PluginVersion = "0.7.0";
         public const string FikaGuid = "com.fika.core";
 

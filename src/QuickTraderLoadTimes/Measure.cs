@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     // No game or Unity types in this file: the test project compiles it directly.
 

@@ -29,7 +29,7 @@ param(
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Drawing
 
-$coldRoot = Join-Path $SPTPath "BepInEx\plugins\Hurryitup\cold-cache"
+$coldRoot = Join-Path $SPTPath "BepInEx\plugins\QuickTraderLoadTimes\cold-cache"
 if (-not $A) { $A = Join-Path $SPTPath "SPT_Runtime\user\sptappdata\live" }
 if (-not $B) {
     $newest = Get-ChildItem $coldRoot -Directory -Filter "20*" -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1

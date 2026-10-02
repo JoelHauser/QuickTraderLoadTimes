@@ -9,7 +9,7 @@ using EFT.Quests;
 using HarmonyLib;
 using UnityEngine;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// Fix candidate 5 (off unless AqcQuestIndex is on): AllQuestsCheckmarks 1.4.0 compatibility.
@@ -82,7 +82,7 @@ namespace Hurryitup
         public static bool Prefix<TQuest>(Profile profile, Item item, ref Dictionary<MongoID, TQuest> activeQuests,
             ref Dictionary<MongoID, TQuest> fulfilled, ref bool __result)
         {
-            if (_inVerify || !HurryitupPlugin.AqcQuestIndex.Value) return true;
+            if (_inVerify || !QuickTraderLoadTimesPlugin.AqcQuestIndex.Value) return true;
             // In raid (solo or a Fika co-op raid) quest progress can change as items are picked up,
             // and few cells are built there anyway: the mod's own lookup runs, like AqcCompat's.
             if (Comfort.Common.Singleton<AbstractGame>.Instance?.InRaid ?? false) return true;
@@ -129,7 +129,7 @@ namespace Hurryitup
             }
             catch (Exception e)
             {
-                HurryitupPlugin.Log.LogWarning("AQC quest index lookup failed, using the mod's own: " + e.Message);
+                QuickTraderLoadTimesPlugin.Log.LogWarning("AQC quest index lookup failed, using the mod's own: " + e.Message);
                 return true;
             }
         }
@@ -152,7 +152,7 @@ namespace Hurryitup
             }
             catch (Exception e)
             {
-                HurryitupPlugin.Log.LogWarning("AQC quest index could not be built, using the mod's own lookup: " + e.Message);
+                QuickTraderLoadTimesPlugin.Log.LogWarning("AQC quest index could not be built, using the mod's own lookup: " + e.Message);
                 _index = null;
                 return null;
             }
@@ -229,12 +229,12 @@ namespace Hurryitup
             if (!same)
             {
                 _verifyMismatches++;
-                HurryitupPlugin.Log.LogWarning($"AQC quest index MISMATCH for {item.TemplateId}: index {result} ({Keys(active)} / {Keys(done)}), " +
+                QuickTraderLoadTimesPlugin.Log.LogWarning($"AQC quest index MISMATCH for {item.TemplateId}: index {result} ({Keys(active)} / {Keys(done)}), " +
                     $"mod's own {expected} ({Keys((IDictionary)args[2])} / {Keys((IDictionary)args[3])})");
             }
             if (--_verifyLeft == 0)
             {
-                HurryitupPlugin.Log.LogInfo($"AQC quest index check: {VerifyCalls - _verifyMismatches} of {VerifyCalls} answers matched the mod's own lookup");
+                QuickTraderLoadTimesPlugin.Log.LogInfo($"AQC quest index check: {VerifyCalls - _verifyMismatches} of {VerifyCalls} answers matched the mod's own lookup");
             }
         }
 

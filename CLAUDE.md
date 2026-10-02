@@ -1,4 +1,9 @@
-# Hurry It Up: notes for the next session
+# Quick Trader Load Times: notes for the next session
+
+Renamed from "Hurry It Up" to **Quick Trader Load Times** on 2026-10-01, before any release: plugin
+GUID com.mybutthasarash.quicktraderloadtimes, DLL and plugin folder QuickTraderLoadTimes. The
+local folder (H:\SPTMods\Hurryitup) and the GitHub repo (JoelHauser/Hurryitup) still have the
+old name. Joel's old DLL and config are in H:\SPTMods\plugin-backups6-10-01-hurryitup-rename.
 
 Goal: make trader item icons appear sooner on the first trader visit after launch, without
 stutters, extra memory, stale icons or any change to live trader data (prices, stock, limits,

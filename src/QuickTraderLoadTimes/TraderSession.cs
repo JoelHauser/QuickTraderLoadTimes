@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     public enum IconKind
     {
@@ -389,7 +389,7 @@ namespace Hurryitup
         public string Report(string runLabel, string launchId, bool coldCache)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"===== Hurryitup: trader open #{OpenIndex} ({TraderName}, open {OpenOfThisTrader} of this trader this launch) =====");
+            sb.AppendLine($"===== Quick Trader Load Times: trader open #{OpenIndex} ({TraderName}, open {OpenOfThisTrader} of this trader this launch) =====");
             sb.AppendLine($"  run label '{runLabel}', launch {launchId}{(coldCache ? ", COLD icon cache" : "")}, ended: {EndReason} at {Fmt.Ms(Now())} ms");
             sb.AppendLine($"  assortment already loaded at open: {AssortmentLoadedAtOpen}; ready at {Fmt.MaybeMs(_tAssortmentReady, "never")} ms; trader grid shown at {Fmt.MaybeMs(_tGridShown, "not rebuilt")} ms; last cell added at {ViewsCompleteText}");
             sb.AppendLine($"  first visible icon drawn: {Fmt.MaybeMs(_tFirstVisible, "never")} ms; all visible drawn: {Fmt.MaybeMs(_allVisibleSince, "never")} ms ({_visibleAtAll} visible); all icons that had to load: {AllIconsDoneText}");
@@ -414,13 +414,13 @@ namespace Hurryitup
             sb.AppendLine($"              RefreshAssortment {RefreshAssortmentWall.Describe()}; prices request {PricesRequestWall.Describe()}; assortment request {AssortmentRequestWall.Describe()}");
             sb.AppendLine($"  frames: {Frames.Count}, p50 {Fmt.Ms(Frames.Percentile(50))} p95 {Fmt.Ms(Frames.Percentile(95))} max {Fmt.Ms(Frames.Max)} ms; >33 ms {Frames.CountOver(33)}, >50 ms {Frames.CountOver(50)}, >100 ms {Frames.CountOver(100)}; baseline before open p50 {Fmt.Ms(BaselineP50)} p95 {Fmt.Ms(BaselineP95)}");
             sb.AppendLine($"  queues: JobScheduler max {_maxJobQueue}, icon render queue max {_maxRenderQueue}");
-            sb.AppendLine($"  FastTraderCells: {(HurryitupPlugin.FastTraderCells.Value ? "ON" : "off")}, SpreadStashCells: {(HurryitupPlugin.SpreadStashCells.Value ? "ON" : "off")}, cell budget {Fmt.Ms(HurryitupPlugin.CellBudgetMs.Value)} ms");
+            sb.AppendLine($"  FastTraderCells: {(QuickTraderLoadTimesPlugin.FastTraderCells.Value ? "ON" : "off")}, SpreadStashCells: {(QuickTraderLoadTimesPlugin.SpreadStashCells.Value ? "ON" : "off")}, cell budget {Fmt.Ms(QuickTraderLoadTimesPlugin.CellBudgetMs.Value)} ms");
             sb.AppendLine($"  stash grid: {_stashCells} cells, last added at {(_stashCells == 0 ? "-" : Fmt.Ms(_tStashComplete) + " ms")}");
             sb.AppendLine($"  trader grid timeline (ms: cells/visible/drawn): {_timeline}");
-            sb.AppendLine($"  AqcQuestIndex: {(HurryitupPlugin.AqcQuestIndex.Value ? "ON" : "off")} ({AqcQuestIndex.Status}); index builds {AqcQuestIndex.Builds - _questIndexBuildsAtOpen} for {AqcQuestIndex.Served - _questIndexServedAtOpen} answers");
-            sb.AppendLine($"  QuestPanelOncePerFrame: {(HurryitupPlugin.QuestPanelOncePerFrame.Value ? "ON" : "off")}; repeat calls skipped {QuestPanelSkipped}");
-            sb.AppendLine($"  AqcStashCountCache: {(HurryitupPlugin.AqcStashCountCache.Value ? "ON" : "off")} ({AqcCompat.Status}); stash walks {AqcCompat.Scans - _aqcScansAtOpen} for {AqcCompat.Served - _aqcServedAtOpen} cell answers");
-            sb.AppendLine($"  FastIconRender: {(HurryitupPlugin.FastIconRender.Value ? "ON, budget " + Fmt.Ms(HurryitupPlugin.RenderBudgetMs.Value) + " ms" : "off")}; its captures {FastRender.Captures - _fastCapturesAtOpen}, frames with 2+ captures {FastRender.FramesWithMultipleCaptures - _fastMultiFramesAtOpen}");
+            sb.AppendLine($"  AqcQuestIndex: {(QuickTraderLoadTimesPlugin.AqcQuestIndex.Value ? "ON" : "off")} ({AqcQuestIndex.Status}); index builds {AqcQuestIndex.Builds - _questIndexBuildsAtOpen} for {AqcQuestIndex.Served - _questIndexServedAtOpen} answers");
+            sb.AppendLine($"  QuestPanelOncePerFrame: {(QuickTraderLoadTimesPlugin.QuestPanelOncePerFrame.Value ? "ON" : "off")}; repeat calls skipped {QuestPanelSkipped}");
+            sb.AppendLine($"  AqcStashCountCache: {(QuickTraderLoadTimesPlugin.AqcStashCountCache.Value ? "ON" : "off")} ({AqcCompat.Status}); stash walks {AqcCompat.Scans - _aqcScansAtOpen} for {AqcCompat.Served - _aqcServedAtOpen} cell answers");
+            sb.AppendLine($"  FastIconRender: {(QuickTraderLoadTimesPlugin.FastIconRender.Value ? "ON, budget " + Fmt.Ms(QuickTraderLoadTimesPlugin.RenderBudgetMs.Value) + " ms" : "off")}; its captures {FastRender.Captures - _fastCapturesAtOpen}, frames with 2+ captures {FastRender.FramesWithMultipleCaptures - _fastMultiFramesAtOpen}");
             sb.AppendLine($"  memory: icons in memory {MemoryAtOpen.Icons} -> {MemoryAtEnd.Icons} ({Fmt.Mb(MemoryAtOpen.IconBytes)} -> {Fmt.Mb(MemoryAtEnd.IconBytes)} MB incl. CPU copies), mono used {Fmt.SignedMb(MemoryAtEnd.MonoUsed - MemoryAtOpen.MonoUsed)} MB, Unity allocated {Fmt.SignedMb(MemoryAtEnd.UnityAllocated - MemoryAtOpen.UnityAllocated)} MB, Unity reserved {Fmt.Mb(MemoryAtEnd.UnityReserved)} MB");
             return sb.ToString();
         }
@@ -433,23 +433,23 @@ namespace Hurryitup
             void Max(string k, string section) => Add(k, Fmt.Ms(SectionSeries(section).Max));
 
             Add("time", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-            Add("plugin_version", HurryitupPlugin.PluginVersion);
+            Add("plugin_version", QuickTraderLoadTimesPlugin.PluginVersion);
             Add("run_label", runLabel);
             Add("launch", launchId);
             Add("cold_cache", coldCache ? "1" : "0");
-            Add("fast_render", HurryitupPlugin.FastIconRender.Value ? "1" : "0");
-            Add("render_budget_ms", Fmt.Ms(HurryitupPlugin.RenderBudgetMs.Value));
+            Add("fast_render", QuickTraderLoadTimesPlugin.FastIconRender.Value ? "1" : "0");
+            Add("render_budget_ms", Fmt.Ms(QuickTraderLoadTimesPlugin.RenderBudgetMs.Value));
             Add("fast_captures", (FastRender.Captures - _fastCapturesAtOpen).ToString());
             Add("fast_multi_frames", (FastRender.FramesWithMultipleCaptures - _fastMultiFramesAtOpen).ToString());
-            Add("fast_trader_cells", HurryitupPlugin.FastTraderCells.Value ? "1" : "0");
-            Add("spread_stash_cells", HurryitupPlugin.SpreadStashCells.Value ? "1" : "0");
-            Add("cell_budget_ms", Fmt.Ms(HurryitupPlugin.CellBudgetMs.Value));
-            Add("aqc_cache", HurryitupPlugin.AqcStashCountCache.Value ? "1" : "0");
+            Add("fast_trader_cells", QuickTraderLoadTimesPlugin.FastTraderCells.Value ? "1" : "0");
+            Add("spread_stash_cells", QuickTraderLoadTimesPlugin.SpreadStashCells.Value ? "1" : "0");
+            Add("cell_budget_ms", Fmt.Ms(QuickTraderLoadTimesPlugin.CellBudgetMs.Value));
+            Add("aqc_cache", QuickTraderLoadTimesPlugin.AqcStashCountCache.Value ? "1" : "0");
             Add("aqc_scans", (AqcCompat.Scans - _aqcScansAtOpen).ToString());
             Add("aqc_served", (AqcCompat.Served - _aqcServedAtOpen).ToString());
-            Add("quest_once", HurryitupPlugin.QuestPanelOncePerFrame.Value ? "1" : "0");
+            Add("quest_once", QuickTraderLoadTimesPlugin.QuestPanelOncePerFrame.Value ? "1" : "0");
             Add("quest_skipped", QuestPanelSkipped.ToString());
-            Add("aqc_quest_index", HurryitupPlugin.AqcQuestIndex.Value ? "1" : "0");
+            Add("aqc_quest_index", QuickTraderLoadTimesPlugin.AqcQuestIndex.Value ? "1" : "0");
             Add("aqc_index_builds", (AqcQuestIndex.Builds - _questIndexBuildsAtOpen).ToString());
             Add("aqc_index_served", (AqcQuestIndex.Served - _questIndexServedAtOpen).ToString());
             Add("stash_cells", _stashCells.ToString());
@@ -590,7 +590,7 @@ namespace Hurryitup
             }
             catch (Exception e)
             {
-                HurryitupPlugin.Log.LogWarning("memory snapshot failed: " + e.Message);
+                QuickTraderLoadTimesPlugin.Log.LogWarning("memory snapshot failed: " + e.Message);
             }
             return s;
         }

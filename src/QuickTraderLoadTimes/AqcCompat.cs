@@ -8,7 +8,7 @@ using HarmonyLib;
 using SPT.Reflection.Utils;
 using UnityEngine;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// Fix candidate 3 (off unless AqcStashCountCache is on): AllQuestsCheckmarks 1.4.0 compatibility.
@@ -70,7 +70,7 @@ namespace Hurryitup
 
         private static bool Prefix(MongoID itemId, ref object __result)
         {
-            if (!HurryitupPlugin.AqcStashCountCache.Value) return true;
+            if (!QuickTraderLoadTimesPlugin.AqcStashCountCache.Value) return true;
             if (Singleton<AbstractGame>.Instance?.InRaid ?? false) return true;
 
             Inventory inventory = ClientAppUtils.GetClientApp()?.GetClientBackEndSession()?.Profile?.Inventory;
@@ -127,11 +127,11 @@ namespace Hurryitup
             if (expectFir != fir || expectNonFir != nonFir)
             {
                 _verifyMismatches++;
-                HurryitupPlugin.Log.LogWarning($"AQC stash count MISMATCH for {itemId}: shared {fir}/{nonFir}, mod's way {expectFir}/{expectNonFir}");
+                QuickTraderLoadTimesPlugin.Log.LogWarning($"AQC stash count MISMATCH for {itemId}: shared {fir}/{nonFir}, mod's way {expectFir}/{expectNonFir}");
             }
             if (--_verifyLeft == 0)
             {
-                HurryitupPlugin.Log.LogInfo($"AQC stash count check: {VerifyCalls - _verifyMismatches} of {VerifyCalls} answers matched the mod's own count");
+                QuickTraderLoadTimesPlugin.Log.LogInfo($"AQC stash count check: {VerifyCalls - _verifyMismatches} of {VerifyCalls} answers matched the mod's own count");
             }
         }
     }

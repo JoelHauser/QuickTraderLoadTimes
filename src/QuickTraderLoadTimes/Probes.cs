@@ -15,7 +15,7 @@ using EFT.UI.DragAndDrop;
 using HarmonyLib;
 using UnityEngine;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// Measurement-only Harmony patches, installed only when Measurement is on. None of them changes
@@ -42,7 +42,7 @@ namespace Hurryitup
 
         public static void Apply(Harmony harmony)
         {
-            if (HurryitupPlugin.ColdCacheActive)
+            if (QuickTraderLoadTimesPlugin.ColdCacheActive)
             {
                 Patch(harmony, "ItemIconCreator..ctor (cold cache)",
                     () => AccessTools.Constructor(typeof(ItemIconCreator), new[] { typeof(IEasyAssets), typeof(ObjectsFactory) }),
@@ -145,7 +145,7 @@ namespace Hurryitup
                 () => AccessTools.Method(typeof(ItemView), nameof(ItemView.IconChangedHandler)),
                 prefix: nameof(StartPrefix), postfix: nameof(IconChangedPostfix), watch: true);
 
-            HurryitupPlugin.Log.LogInfo($"measurement probes applied: {Applied.Count}; failed: {Failed.Count}" +
+            QuickTraderLoadTimesPlugin.Log.LogInfo($"measurement probes applied: {Applied.Count}; failed: {Failed.Count}" +
                 (Failed.Count > 0 ? " -> " + string.Join("; ", Failed) : ""));
         }
 
@@ -185,7 +185,7 @@ namespace Hurryitup
                 Patches info = Harmony.GetPatchInfo(m);
                 if (info == null) continue;
                 IEnumerable<string> Owners(IEnumerable<HarmonyLib.Patch> ps, string kind) =>
-                    ps.Where(p => p.owner != HurryitupPlugin.PluginGuid).Select(p => p.owner + " (" + kind + ")");
+                    ps.Where(p => p.owner != QuickTraderLoadTimesPlugin.PluginGuid).Select(p => p.owner + " (" + kind + ")");
                 List<string> owners = Owners(info.Prefixes, "prefix")
                     .Concat(Owners(info.Postfixes, "postfix"))
                     .Concat(Owners(info.Transpilers, "transpiler"))
@@ -212,10 +212,10 @@ namespace Hurryitup
 
         private static void CreatorCtorPostfix(ItemIconCreator __instance)
         {
-            string dir = HurryitupPlugin.ColdCacheDir;
+            string dir = QuickTraderLoadTimesPlugin.ColdCacheDir;
             __instance._cachePath = dir;
             __instance._indexPath = Path.Combine(dir, "index.json");
-            HurryitupPlugin.Log.LogWarning("COLD icon cache: item icons for this launch read and write " + dir +
+            QuickTraderLoadTimesPlugin.Log.LogWarning("COLD icon cache: item icons for this launch read and write " + dir +
                 " (the real cache is untouched). Turn ColdIconCache off and restart to go back.");
         }
 
@@ -312,7 +312,7 @@ namespace Hurryitup
             }
             catch (Exception e)
             {
-                HurryitupPlugin.Log.LogWarning("GetItemIcon probe: " + e.Message);
+                QuickTraderLoadTimesPlugin.Log.LogWarning("GetItemIcon probe: " + e.Message);
             }
         }
 

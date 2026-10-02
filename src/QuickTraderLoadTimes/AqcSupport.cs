@@ -1,7 +1,7 @@
 using System;
 using BepInEx.Bootstrap;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// The AllQuestsCheckmarks fixes (AqcCompat, AqcQuestIndex) stand in for that mod's own code with

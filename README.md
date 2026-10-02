@@ -1,4 +1,4 @@
-# Hurry It Up
+# Quick Trader Load Times
 
 Faster trader screens for SPT 4.1.x. Opening a trader used to leave spinners across the
 trader's items while they appeared a few at a time, and froze for about half a second on every
@@ -30,8 +30,8 @@ screen opens the plugin follows that open until every icon visible
 in the trader grid is drawn and nothing has finished loading for one second (or the screen
 closes, or 30 seconds pass). It then writes:
 
-- a block to `BepInEx\LogOutput.log`, starting `===== Hurryitup: trader open #N (Trader) =====`
-- one row to `BepInEx\plugins\Hurryitup\measurements.csv`
+- a block to `BepInEx\LogOutput.log`, starting `===== Quick Trader Load Times: trader open #N (Trader) =====`
+- one row to `BepInEx\plugins\QuickTraderLoadTimes\measurements.csv`
 
 | Metric | What it means |
 |---|---|
@@ -47,7 +47,7 @@ closes, or 30 seconds pass). It then writes:
 `probe_overhead_sum` is the plugin's own cost (it repeats the game's cache lookup to label
 each request). Subtract it when comparing.
 
-## Settings (`BepInEx\config\com.mybutthasarash.hurryitup.cfg`)
+## Settings (`BepInEx\config\com.mybutthasarash.quicktraderloadtimes.cfg`)
 
 **Fixes** (all on by default except `FastIconRender`; changes take effect immediately):
 
@@ -107,8 +107,8 @@ so the stock fetch is out of the way and the numbers are about icons.
 ## Build
 
 ```
-dotnet build src/Hurryitup/Hurryitup.csproj -c Release -p:SPTPath=H:\SPT4.1.X -p:DeployToSPT=true
-dotnet test tests/Hurryitup.Tests
+dotnet build src/QuickTraderLoadTimes/QuickTraderLoadTimes.csproj -c Release -p:SPTPath=H:\SPT4.1.X -p:DeployToSPT=true
+dotnet test tests/QuickTraderLoadTimes.Tests
 ```
 
 The plugin compiles against the game's Assembly-CSharp, which has to be the copy the SPT

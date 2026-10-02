@@ -3,7 +3,7 @@ using EFT.InventoryLogic;
 using EFT.UI.DragAndDrop;
 using UnityEngine;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// Fix candidate 4 (off unless QuestPanelOncePerFrame is on).
@@ -31,7 +31,7 @@ namespace Hurryitup
 
         public static bool Prefix(ItemView __instance)
         {
-            if (!HurryitupPlugin.QuestPanelOncePerFrame.Value) return true;
+            if (!QuickTraderLoadTimesPlugin.QuestPanelOncePerFrame.Value) return true;
 
             int frame = Time.frameCount;
             if (frame != _frame)

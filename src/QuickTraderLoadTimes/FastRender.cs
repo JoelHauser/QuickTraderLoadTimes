@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using EFT.InventoryLogic;
 using UnityEngine;
 
-namespace Hurryitup
+namespace QuickTraderLoadTimes
 {
     /// <summary>
     /// Fix candidate 1 (off unless FastIconRender is on): render uncached item icons as fast as a
@@ -32,7 +32,7 @@ namespace Hurryitup
         /// <summary>Prefix on IconCreatorBase&lt;Item, ItemIcon&gt;.CG_MoveNext.method_0.</summary>
         public static bool Prefix(IconCreatorBase<Item, ItemIcon>.CG_MoveNext __instance, GameObject model, PreviewPivot pivot, ref Task<Sprite> __result)
         {
-            if (!HurryitupPlugin.FastIconRender.Value) return true;
+            if (!QuickTraderLoadTimesPlugin.FastIconRender.Value) return true;
             if (!(__instance.IconCreatorBase is ItemIconCreator creator)) return true;
             __result = Capture(creator, model, __instance.size, pivot);
             return false;
@@ -72,7 +72,7 @@ namespace Hurryitup
                 _capturesThisFrame = 0;
                 return true;
             }
-            return _spentThisFrame < HurryitupPlugin.RenderBudgetMs.Value;
+            return _spentThisFrame < QuickTraderLoadTimesPlugin.RenderBudgetMs.Value;
         }
 
         private static void Spend(double ms)
