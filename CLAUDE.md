@@ -1,16 +1,72 @@
 # Quick Trader Load Times: notes for the next session
 
-Renamed from "Hurry It Up" to **Quick Trader Load Times** on 2026-10-01, before any release: plugin
-GUID com.mybutthasarash.quicktraderloadtimes, DLL and plugin folder QuickTraderLoadTimes. The
-local folder (H:\SPTMods\Hurryitup) and the GitHub repo (JoelHauser/Hurryitup) still have the
-old name. Joel's old DLL and config are in H:\SPTMods\plugin-backups\2026-10-01-hurryitup-rename.
+**Status: 1.0.0 released 2026-10-02** (GitHub release v1.0.0, Latest).
 
-Goal: make trader item icons appear sooner on the first trader visit after launch, without
-stutters, extra memory, stale icons or any change to live trader data (prices, stock, limits,
-unlocks). Joel wants a **measured** improvement: no fix ships without before/after rows from
-`measurements.csv`.
+- Repo: https://github.com/JoelHauser/QuickTraderLoadTimes (renamed from `Hurryitup` on
+  2026-10-02; GitHub redirects the old URLs). Local clone: `H:\SPTMods\Hurryitup` (the folder
+  kept the old name).
+- Plugin GUID `com.mybutthasarash.quicktraderloadtimes`, the same for both halves. It was renamed
+  from "Hurry It Up" before release. Joel's pre-rename DLL and config are in
+  `H:\SPTMods\plugin-backups\2026-10-01-hurryitup-rename`.
+- Forge description: Joel pastes it himself (header, the before/after GIF
+  `https://i.imgur.com/FYzIqI6.gif` with the MP4 linked, What it does / Results / Good to know /
+  Install). The Forge renders images but not video, and censors the word "Tarkov".
 
-## Phase plan
+## What it is
+
+Trader screens and the flea market that open fast. The icons were never the bottleneck. The
+time went into building item cells (one per frame), into each cell's setup (mostly
+AllQuestsCheckmarks), and into the stash grid rebuilding in one frame on every trader switch.
+Measured on Joel's install: everything in view went from 1.6-3.0 s to about 0.4-0.6 s, and the
+worst frame from 0.36-0.92 s to 0.1-0.3 s. The History section below has the numbers behind
+every step.
+
+| File | What |
+|---|---|
+| `src/QuickTraderLoadTimes/Scope.cs` | Every fix acts only while the TraderDealScreen or RagfairScreen is open, and never when `AbstractGame.InRaid`. |
+| `FastCells.cs` | `FastTraderCells` / `SpreadStashCells` / `CellBudgetMs`: a line-for-line copy of `GridView.MagnifyIfPossible` with per-frame budgeted waits, top rows first, for the deal screen's two grids only. A grid stays ours until its build finishes. |
+| `QuestPanelOnce.cs` | `QuestPanelOncePerFrame`: a cell's `SetQuestItemViewPanel` runs 3 times in one frame (Init + 2 UpdateInfo); repeats for the same cell, item and inventory version are skipped. |
+| `AqcCompat.cs`, `AqcQuestIndex.cs`, `AqcSupport.cs` | AllQuestsCheckmarks 1.4.0 only: a shared stash count and an index of active quests, replacing per-cell walks. Same answers (self-checked with Measurement on); weapons and anything outside Scope use the mod's own code. |
+| `InventoryEvents.cs` | A counter bumped on every ItemController add/remove/refresh event; the shared work above is thrown away when it changes. |
+| `FastRender.cs` | `FastIconRender` (off): budgeted icon capture. Its icons are correct, but it measured no faster. |
+| `Probes.cs`, `Recorder.cs`, `TraderSession.cs`, `Measure.cs` | The measurement harness (`[Measurement] Enabled`, off by default; nothing installed when off). |
+| `src/QuickTraderLoadTimes.Server/` | One line at server start, "Quick Trader Load Times 1.0.0 loaded", plus the mod's entry in the server's mod list. |
+| `scripts/pack.ps1`, `scripts/compare-icons.ps1` | Release packaging; pixel diff of two icon caches. |
+
+## Conventions
+
+- Commit as `-c user.name="Joel Hauser" -c user.email=jhauser@bostonlightsource.com`; the
+  global git identity on this machine has no name.
+- The server line stays **one line**. Joel tried a 5-line ASCII-art banner and called it
+  "kinda obnoxious".
+- The release is quiet: no Info-level logging from the plugin unless Measurement is on.
+- Nothing may act outside the trader screen and the flea market, or in any raid (Joel's call).
+- Measure before claiming: turn `[Measurement] Enabled` on in Joel's cfg for a test round, read
+  `BepInEx\plugins\QuickTraderLoadTimes\measurements.csv` (it survives restarts;
+  LogOutput.log doesn't), and turn it off again. Check that a config file exists and was read
+  before rewriting it: an unchecked PowerShell edit once blanked Joel's.
+
+## Not verified / open
+
+- The one-line server message has only been previewed offline (a recording console rendered to
+  PNG), not seen in a running SPT server.
+- Fika: checked statically against Fika 2.4.3 (no overlapping patches; Fika patches
+  `AbstractGame.InRaid` to `is CoopGame`, which Scope relies on), never run with Fika installed.
+- Flea market: covered by Scope, but not measured (the harness follows trader opens only). Opening
+  Add Offer builds the visible stash in one frame, the same freeze the trader screen had; the
+  stash spreading could cover `AddOfferWindow._gridView` after measuring it.
+- Tested on SPT 4.1.6 only.
+- Ideas not built: fetch each trader's stock while idle in the menu (the first visit waits
+  0.2-0.7 s on the server; the game already does this for Peacekeeper and Skier through
+  AutoExchange); shorten TraderDealScreen.Show's own ~130-200 ms first frame; icon-cache
+  invalidation (bundle checksums from `SPT_Runtime\user\cache\bundleHashCache.json`) for the 2
+  blank and 1 stale-size cached icons found on Joel's install.
+- AllQuestsCheckmarks upstream (ZGFueDkx): the per-cell stash walk and quest walk deserve a fix
+  in the mod itself; no report has been sent yet.
+
+## History (newest last)
+
+### The original plan (0.1.0; the measurements changed it)
 
 1. **Measure (0.1.0, this build).** Probes only, no behaviour change. Run the README protocol.
 2. **Decide from the numbers.** The candidates:
@@ -23,7 +79,7 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
    - Either way, add cache invalidation (below).
 3. Re-run the same protocol with a new `RunLabel` and compare.
 
-## Measured (0.1.0, 2026-10-01, 13 normal + 7 cold-cache opens; CSV in the install)
+### Measured (0.1.0, 2026-10-01, 13 normal + 7 cold-cache opens; CSV in the install)
 
 - **Normal cache: icons are not the bottleneck.** First visible icon 450-840 ms (Prapor's first
   open 1.4 s). The stock request takes 455-770 ms and the price request 742 ms; prices come
@@ -50,7 +106,7 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
   stay wrong until the cache gets invalidation. The rest of the differences are render-to-render
   noise.
 
-## Measured (0.2.0, 2026-10-01: launches freeze / cold-vanilla / cold-fast)
+### Measured (0.2.0, 2026-10-01: launches freeze / cold-vanilla / cold-fast)
 
 - **Icons only appear as cells get created, and cells are what's slow.** The trader grid has
   `_isAsyncAllowed` set, so `GridView.MagnifyIfPossible` creates one cell and then waits a frame
@@ -70,7 +126,7 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
   copy of MagnifyIfPossible with budgeted waits), plus "cell part:" probes to find what inside
   a cell costs 2.5-5 ms.
 
-## Measured (0.3.0, 2026-10-01: cells-off vs a launch with SpreadStashCells + FastIconRender on)
+### Measured (0.3.0, 2026-10-01: cells-off vs a launch with SpreadStashCells + FastIconRender on)
 
 - Joel's second launch had FastTraderCells OFF and FastIconRender ON (a mix-up), so only the stash
   spreading was tested.
@@ -88,7 +144,7 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
 - Also from these rows: NewTradingItemView (trading setup, inside the cell) is the next biggest cost
   at ~2 ms per trader cell.
 
-## Measured (0.4.0 all-on, 2026-10-01; Joel: "the items are loading so fast now")
+### Measured (0.4.0 all-on, 2026-10-01; Joel: "the items are loading so fast now")
 
 - All visible drawn: 0.5-1.4 s on a trader's first open (0.3.0 fixes off: 1.6-3.0 s); 0.4-0.6 s
   on reopens. Worst frame mostly 100-210 ms (was 360-920).
@@ -101,7 +157,7 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
 - Joel asked for the stash to fill at the same time as the trader: 0.5.0 drops the wait and
   splits each frame's CellBudgetMs evenly between the grids filling.
 
-## Measured (0.5.0 "together", 2026-10-01) and 0.6.0
+### Measured (0.5.0 "together", 2026-10-01) and 0.6.0
 
 - Corrected "all items in view" (later of all_visible_ms and cells_complete_ms; 0.5.0's
   all_visible_ms fired once the first few cells, already drawn, were all there was): Peacekeeper
@@ -117,7 +173,7 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
   MakeGenericMethod so the out parameters match exactly, and the first 50 answers checked. Joel's
   test config: CellBudgetMs 16 (option 1), RunLabel fast16.
 
-## Measured (0.6.0 "fast16", 2026-10-01; Joel: "its incredibly fast now wow")
+### Measured (0.6.0 "fast16", 2026-10-01; Joel: "its incredibly fast now wow")
 
 - Self-checks: AQC stash count 20/20, AQC quest index 50/50, probes 34 applied, 0 failed.
 - Per cell 1.35 -> ~0.8-1.0 ms; the quest panel per open 100-300 -> 20-100 ms.
@@ -128,7 +184,38 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
   notice it. Several rows include scrolling and tab switching (many disk loads, 128 new renders on
   Peacekeeper), so their all_visible/cells_complete aren't open-to-done times.
 
-## 1.0.0 (2026-10-01)
+### 0.7.0, release prep (2026-10-01; ran in game as part of 0.8.0)
+
+- Measurement off by default ([Measurement] Enabled, restart required); when off, no probes are
+  installed. The fixes' patches live in Fixes.cs and are always installed; each fix checks its own
+  setting per call.
+- Defaults: all fixes on except FastIconRender; CellBudgetMs 12 (Joel's cfg keeps 16).
+- FastTraderCells only touches TraderDealScreen._traderGridView (it used to touch any grid that
+  builds gradually).
+- AllQuestsCheckmarks fixes install only for 1.4.0 exactly (AqcSupport; soft BepInDependency so
+  the version is known). InventoryEvents (the change counter) is always installed, so
+  QuestPanelOnce no longer depends on AQC being present. AqcQuestIndex now also steps aside in raid.
+- Fika: Fika 2.4.3 (Fika.Core.dll, EFT 0.16.9.40743) was decompiled into a scratchpad; none of its
+  patches touch our targets (TraderDealScreen, grids, item views, quest panel, icon creator,
+  ItemController events). AQC's Fika code (SquadQuests, FikaBridge) is outside what we replace.
+  The plugin does nothing when Application.isBatchMode or there is no graphics device (headless).
+  Fika is not installed on Joel's machine, so this is static analysis only.
+
+### 0.8.0, scope (2026-10-01; Joel: "it runs flawlessly")
+
+Joel: "this should only effect traders and the flea market too ... nothing in raid". Scope.cs:
+every fix acts only while the TraderDealScreen or RagfairScreen is open (activeInHierarchy;
+RagfairScreen.Show tracked like TraderDealScreen.Show) and never when AbstractGame.InRaid. Before
+this, QuestPanelOnce ran on every cell everywhere (raids included), and the AQC fixes on every
+screen out of raid. The gate is per screen, not per cell, because a new cell comes from a pool
+and is only parented under its grid after it is set up. The flea's AddOfferWindow is
+ItemUiContext's shared window, not a child of RagfairScreen; it is covered because RagfairScreen
+stays open under it. The BTR driver's trader in raid is excluded by the raid check. Fika patches
+AbstractGame.InRaid to `is CoopGame`, so the check is right under Fika too (true in Fika raids,
+false in the hideout). The flea market is covered but not measured: the measurement harness only
+follows trader opens.
+
+### 1.0.0 (2026-10-01)
 
 - Joel ran 0.8.0 ("it runs flawlessly"): no errors from the mod, 29/29 probes applied, AQC
   self-checks 20/20 and 50/50. Everything in view on 0.42-0.61 s for most traders; worst frame
@@ -149,37 +236,6 @@ unlocks). Joel wants a **measured** improvement: no fix ships without before/aft
   dist\QuickTraderLoadTimes-<v>.zip with forward-slash entries, and installs with -Install.
 - A PowerShell edit blanked Joel's cfg once (the file was momentarily missing and the failed
   read was written back); it was restored from known values (CellBudgetMs 16, measurement off).
-
-## 0.8.0, scope (2026-10-01, not yet run in game)
-
-Joel: "this should only effect traders and the flea market too ... nothing in raid". Scope.cs:
-every fix acts only while the TraderDealScreen or RagfairScreen is open (activeInHierarchy;
-RagfairScreen.Show tracked like TraderDealScreen.Show) and never when AbstractGame.InRaid. Before
-this, QuestPanelOnce ran on every cell everywhere (raids included), and the AQC fixes on every
-screen out of raid. The gate is per screen, not per cell, because a new cell comes from a pool
-and is only parented under its grid after it is set up. The flea's AddOfferWindow is
-ItemUiContext's shared window, not a child of RagfairScreen; it is covered because RagfairScreen
-stays open under it. The BTR driver's trader in raid is excluded by the raid check. Fika patches
-AbstractGame.InRaid to `is CoopGame`, so the check is right under Fika too (true in Fika raids,
-false in the hideout). The flea market is covered but not measured: the measurement harness only
-follows trader opens.
-
-## 0.7.0, release prep (2026-10-01, not yet run in game)
-
-- Measurement off by default ([Measurement] Enabled, restart required); when off, no probes are
-  installed. The fixes' patches live in Fixes.cs and are always installed; each fix checks its own
-  setting per call.
-- Defaults: all fixes on except FastIconRender; CellBudgetMs 12 (Joel's cfg keeps 16).
-- FastTraderCells only touches TraderDealScreen._traderGridView (it used to touch any grid that
-  builds gradually).
-- AllQuestsCheckmarks fixes install only for 1.4.0 exactly (AqcSupport; soft BepInDependency so
-  the version is known). InventoryEvents (the change counter) is always installed, so
-  QuestPanelOnce no longer depends on AQC being present. AqcQuestIndex now also steps aside in raid.
-- Fika: Fika 2.4.3 (Fika.Core.dll, EFT 0.16.9.40743) was decompiled into a scratchpad; none of its
-  patches touch our targets (TraderDealScreen, grids, item views, quest panel, icon creator,
-  ItemController events). AQC's Fika code (SquadQuests, FikaBridge) is outside what we replace.
-  The plugin does nothing when Application.isBatchMode or there is no graphics device (headless).
-  Fika is not installed on Joel's machine, so this is static analysis only.
 
 ## How the game loads icons (from the 4.1.x client, decompiled 2026-10-01)
 
@@ -228,12 +284,22 @@ Reflex OnAndBoost. `H:` is NVMe.
 
 ## Build notes
 
-- Compiles against the patched `Assembly-CSharp` (the csproj refuses an unpatched one). Joel's
-  other client mods resolve by name at runtime instead; this is a harness for his own install.
-- Patch targets were checked offline with `System.Reflection.MetadataLoadContext`: all 15 resolve
-  to exactly one method, and the parameter names match. Patches on the generic
-  `IconCreatorBase<Item, ItemIcon>` (`LoadFromUserCacheAsync`, `CaptureSpriteOfModel`,
-  `SaveIconAsync`) are shared with the clothing and player icon creators; the probes filter on
-  `__instance is ItemIconCreator`.
-- Each probe is applied separately; the log line `probes applied: N; failed: M -> ...` names
-  any that failed.
+- `scripts\pack.ps1 [-SPTPath H:\SPT4.1.X] [-Install]` is the only way to build a release: it
+  refuses to pack unless all five version numbers agree (plugin csproj, PluginVersion, server csproj,
+  ModMetadata, StartupBanner.Version), builds both halves, runs the tests (22), and writes
+  `dist\QuickTraderLoadTimes-<v>.zip` with forward-slash entries (PS 5.1's Compress-Archive writes
+  backslashes). Run it from PowerShell, not Bash. `dist\` is gitignored; release notes are drafted
+  there as `release-notes-<v>.md`.
+- The plugin compiles against the SPT-patched `Assembly-CSharp` (the csproj refuses an unpatched
+  one). Joel's other client mods resolve by name at runtime instead. Every SPT install runs the
+  patched copy at runtime anyway, so this only matters for building: start the game once on a new
+  install first.
+- The server half needs the user-local .NET 10 SDK (`%USERPROFILE%\.dotnet\dotnet.exe`; the one
+  on PATH is SDK 8).
+- Patch targets were checked offline with `System.Reflection.MetadataLoadContext` (game methods,
+  AllQuestsCheckmarks 1.4.0's StashHelper/QuestsHelper, spt-reflection's ClientAppUtils): each
+  resolves to exactly one method and the parameter names match. Patches on the generic
+  `IconCreatorBase<Item, ItemIcon>` are shared with the clothing and player icon creators; the
+  probes and FastRender filter on `__instance is ItemIconCreator`.
+- Each fix and probe is applied separately (Fixes.cs, Probes.cs). A fix that fails to install
+  logs one warning at startup; the rest still work.

@@ -29,7 +29,7 @@ public record ModMetadata : IModMetadata
 
     public Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
 
-    public string? Url { get; init; } = "https://github.com/JoelHauser/Hurryitup";
+    public string? Url { get; init; } = "https://github.com/JoelHauser/QuickTraderLoadTimes";
 
     public string License { get; init; } = "MIT";
 
