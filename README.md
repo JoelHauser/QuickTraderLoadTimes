@@ -1,5 +1,9 @@
 # Quick Trader Load Times
 
+![Opening a trader, before and after](https://i.imgur.com/FYzIqI6.gif)
+
+*Opening a trader, before and after. [Watch the video](https://i.imgur.com/FYzIqI6.mp4)*
+
 Trader screens and the flea market that open fast, for SPT 4.1.x.
 
 Opening a trader used to show loading spinners across their items while they trickled in a few
