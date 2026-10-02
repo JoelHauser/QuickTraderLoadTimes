@@ -49,35 +49,35 @@ each request). Subtract it when comparing.
 
 ## Settings (`BepInEx\config\com.mybutthasarash.hurryitup.cfg`)
 
-Fixes (on by default, except `FastIconRender`):
+**Fixes** (all on by default except `FastIconRender`; changes take effect immediately):
 
-
-- `Enabled` (Measurement, default off, restart required): the measurement harness.
-- `RunLabel` (default `baseline`): written into every CSV row, to tell runs apart.
-- `ColdIconCache` (default off, restart required): points the item icon cache at an empty
-  throwaway folder (`cold-cache\<launch>-vanilla` or `-fast` beside the DLL; the newest 6 are
-  kept), so every icon is rendered from scratch. **Your real icon cache is never read or written while it is on.**
-- `MaxSessionSeconds`, `SettleSeconds`: when an open stops being measured.
 - `FastTraderCells`: fills the trader grid with as many cells per frame as `CellBudgetMs`
   allows (top rows first), instead of one per frame.
 - `SpreadStashCells`: builds the trader screen's stash over several frames alongside the
   trader grid, instead of in one frame (the freeze on every trader switch).
 - `CellBudgetMs` (default 12): per-frame time for building cells, split evenly between the grids
-  filling at the time. 16 roughly halves the fill time; for the fraction of a second it takes,
-  frames run at about 30-40 FPS instead of 60.
-- `AqcStashCountCache`: AllQuestsCheckmarks compatibility. It counts the stash once and shares
-  the count between cells, instead of walking every owned item for every cell. The count is
-  redone on any inventory change, and the first 20 answers are checked against the mod's own.
+  filling at the time. Higher fills faster; for the fraction of a second it takes, the frame
+  rate drops (16 gave about 30-40 FPS on a 60 FPS menu).
 - `QuestPanelOncePerFrame`: sets up each new cell's quest checkmark once instead of three times
   in the same frame.
-- `AqcQuestIndex`: AllQuestsCheckmarks compatibility. It indexes the active quests once and
-  answers each cell's quest lookup from the index, instead of walking every quest for every cell.
-  Weapons use the mod's own lookup. The first 50 answers are checked against the mod's.
-- `FastIconRender` / `RenderBudgetMs`: renders uncached icons within a per-frame budget instead
-  of the game's one icon every two frames. Its icons match the game's own, but it gave no
-  measurable gain, because rendering is fed by cell creation; leave it off.
+- `AqcStashCountCache` (AllQuestsCheckmarks 1.4.0): counts the stash once and shares the count
+  between cells, instead of walking every owned item for every cell. The count is redone on any
+  inventory change, and the first 20 answers are checked against the mod's own.
+- `AqcQuestIndex` (AllQuestsCheckmarks 1.4.0): indexes the active quests once and answers each
+  cell's quest lookup from the index, instead of walking every quest for every cell. Weapons and
+  everything in raid use the mod's own lookup. The first 50 answers are checked against the mod's.
+- `FastIconRender` / `RenderBudgetMs` (off): renders uncached icons within a per-frame budget
+  instead of the game's one icon every two frames. Its icons match the game's own, but it
+  measured no faster, because rendering waits on cell creation.
 
-All the fixes take effect immediately.
+**Measurement** (for testing; restart required):
+
+- `Enabled` (default off): the measurement harness described above.
+- `RunLabel` (default `baseline`): written into every CSV row, to tell runs apart.
+- `ColdIconCache` (default off): points the item icon cache at an empty throwaway folder
+  (`cold-cache\<launch>-vanilla` or `-fast` beside the DLL; the newest 6 are kept), so every
+  icon is rendered from scratch. **Your real icon cache is never read or written while it is on.**
+- `MaxSessionSeconds`, `SettleSeconds`: when an open stops being measured.
 
 ## Checking that fast-rendered icons look right
 
